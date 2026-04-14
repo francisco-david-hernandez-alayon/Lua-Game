@@ -1,18 +1,22 @@
+local StateManager = require("core.state_manager")
+
+-- Execute when game start
 function love.load()
-    jugador = { x = 400, y = 300 }
+    local menu = require("states.menu")
+    StateManager.switch(menu)
 end
 
+-- Update game state every frame
 function love.update(dt)
-    if love.keyboard.isDown("right") then
-        jugador.x = jugador.x + 200 * dt
-    end
-
-    if love.keyboard.isDown("left") then
-        jugador.x = jugador.x - 200 * dt
-    end
+    StateManager.update(dt)
 end
 
+-- Draw in current screen every frame
 function love.draw()
-    love.graphics.circle("fill", jugador.x, jugador.y, 20)
-    love.graphics.print("Mi primer juego en LÖVE", 10, 10)
+    StateManager.draw()
+end
+
+-- Keyboward input
+function love.keypressed(key)
+    StateManager.keypressed(key)
 end

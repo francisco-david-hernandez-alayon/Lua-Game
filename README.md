@@ -2,10 +2,10 @@
 *Author: Francisco David Hernández Alayón*
 
 ## Execution
-### Windows
-Execute Love program in current folder
 
-& "[Love program path]" .
-```
+### Windows
+Run project from the current folder:
+
+```bash
 & "C:\Program Files\LOVE\love.exe" .
 ```

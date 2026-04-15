@@ -1,21 +1,42 @@
-local Save = {}
+local json = require("libs.json") -- ligthweight json library
+local Game = require("core.game")
 
-function Save.newGame()
-    return {
-        hp = 100,
-        enemy = "slime",
-        turn = 1
-    }
+local SaveSystem = {}
+
+SaveSystem.slots = 3
+
+local function getPath(slot)
+    return "save_slot_" .. slot .. ".json"
 end
 
-function Save.save(data)
-    love.filesystem.write("save.txt", love.data.encode("string", "json", data))
+function SaveSystem.exists(slot)
+    return love.filesystem.getInfo(getPath(slot)) ~= nil
 end
 
-function Save.load()
-    local file = love.filesystem.read("save.txt")
-    if not file then return nil end
-    return love.data.decode("string", "json", file)
+function SaveSystem.save(slot, game)
+    game.last_save = os.time()
+
+    local data = json.encode(game:toTable())
+    love.filesystem.write(getPath(slot), data)
 end
 
-return Save
+function SaveSystem.load(slot)
+    if not SaveSystem.exists(slot) then return nil end
+
+    local data = love.filesystem.read(getPath(slot))
+
+    local ok, decoded = pcall(json.decode, data)
+    if not ok or type(decoded) ~= "table" then
+        return nil
+    end
+
+    return Game.new(decoded)
+end
+
+function SaveSystem.delete(slot)
+    if SaveSystem.exists(slot) then
+        love.filesystem.remove(getPath(slot))
+    end
+end
+
+return SaveSystem

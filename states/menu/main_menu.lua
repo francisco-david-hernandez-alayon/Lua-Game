@@ -23,7 +23,6 @@ function MainMenu.keypressed(key)
         local choice = MenuController.getSelected(MainMenu.menu)
 
         if choice == MainMenu.L.get("play") then
-            print("PLAY")
             MainMenu.sm.switch("play_menu")
 
         elseif choice == MainMenu.L.get("options") then

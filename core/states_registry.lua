@@ -7,8 +7,7 @@ StatesRegistry.states = {
     main_menu = StatesMenuPath .. ".main_menu",
     play_menu = StatesMenuPath .. ".play_menu",
     options = StatesMenuPath .. ".options",
-    new_game = StatesMenuPath .. ".new_game",
-    load_game = StatesMenuPath .. ".load_game",
+    game = StatesGamePath .. ".game",
 }
 
 function StatesRegistry.getState(name)

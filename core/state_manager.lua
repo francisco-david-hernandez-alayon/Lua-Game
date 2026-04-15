@@ -1,17 +1,34 @@
--- Export modules
 local StateManager = {}
-
 local CurrentState = nil
+local StatesRegistry = require("core.states_registry")
+local L = require("core.localization.localization")  -- Lang
 
+
+-- Resolve require from ONLY game states
+function StateManager.resolveState(state)
+    if type(state) == "string" then
+        return StatesRegistry.getState(state)
+    end
+
+    return state
+end
+
+
+-- SWITCH STATES
 function StateManager.switch(state, ...)
-    if CurrentState and CurrentState.exit then CurrentState.exit() end
+    state = StateManager.resolveState(state)
+    
+    if CurrentState and CurrentState.exit then
+        CurrentState.exit()
+    end
 
     CurrentState = state
 
     if CurrentState.enter then
-        CurrentState.enter(StateManager, ...)
+        CurrentState.enter(StateManager, L, ...)
     end
 end
+
 
 function StateManager.update(dt)
     if CurrentState and CurrentState.update then CurrentState.update(dt) end

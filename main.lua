@@ -2,8 +2,8 @@ local StateManager = require("core.state_manager")
 
 -- Execute when game start
 function love.load()
-    local menu = require("states.menu")
-    StateManager.switch(menu)
+    require("core.settings").load()
+    StateManager.switch("main_menu")
 end
 
 -- Update game state every frame

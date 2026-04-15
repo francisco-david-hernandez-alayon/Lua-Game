@@ -1,0 +1,22 @@
+# Debug logs
+debug_console.txt
+debug.txt
+*.log
+
+# LÖVE save/data folder
+*.love
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Lua cache
+luac.out
+
+# Backup files
+*~
+*.bak

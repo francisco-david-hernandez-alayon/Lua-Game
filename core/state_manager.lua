@@ -4,26 +4,28 @@ local StatesRegistry = require("core.states_registry")
 local L = require("core.localization.localization")  -- Lang
 
 
--- Resolve require from ONLY game states
-function StateManager.resolveState(state)
-    if type(state) == "string" then
-        return StatesRegistry.getState(state)
+-- Given a state name it gets states from states_registry
+function StateManager.resolveState(stateName)
+    if type(stateName) == "string" then
+        return StatesRegistry.getState(stateName)
     end
 
-    return state
+    return stateName
 end
 
 
--- SWITCH STATES
-function StateManager.switch(state, ...)
-    state = StateManager.resolveState(state)
+-- Switch states
+function StateManager.switch(newState, ...)
+    -- Get New State
+    newState = StateManager.resolveState(newState)
     
+    -- Execute Current State Exit Function 
     if CurrentState and CurrentState.exit then
         CurrentState.exit()
     end
 
-    CurrentState = state
-
+    -- Change State and Execute New State Enter Function
+    CurrentState = newState
     if CurrentState.enter then
         CurrentState.enter(StateManager, L, ...)
     end

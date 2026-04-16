@@ -1,11 +1,14 @@
-local MenuController = require("ui.menu_controller")
+local SimpleMenuController = require("ui.simple_menu_controller")
 local MainMenu = {}
 
 function MainMenu.enter(sm, L)
     MainMenu.sm = sm
     MainMenu.L = L
 
-    MainMenu.menu = MenuController.new({
+    MainMenu.menu = SimpleMenuController.new({
+        -- TESTING STATE
+        "TEST",
+
         L.get("play"),
         L.get("options"),
         L.get("exit")
@@ -14,13 +17,13 @@ end
 
 function MainMenu.keypressed(key)
     if key == "up" then
-        MenuController.moveUp(MainMenu.menu)
+        SimpleMenuController.moveUp(MainMenu.menu)
         
     elseif key == "down" then
-        MenuController.moveDown(MainMenu.menu)
+        SimpleMenuController.moveDown(MainMenu.menu)
 
     elseif key == "return" then
-        local choice = MenuController.getSelected(MainMenu.menu)
+        local choice = SimpleMenuController.getSelected(MainMenu.menu)
 
         if choice == MainMenu.L.get("play") then
             MainMenu.sm.switch("play_menu")
@@ -30,12 +33,18 @@ function MainMenu.keypressed(key)
 
         elseif choice == MainMenu.L.get("exit") then
             love.event.quit()
+
+        
+        -- TESTING STATE
+        elseif choice == "TEST" then
+            MainMenu.sm.switch("main_test")
         end
+    
     end
 end
 
 function MainMenu.draw()
-    MenuController.draw(MainMenu.menu, 100, 100)
+    SimpleMenuController.draw(MainMenu.menu, 100, 100)
 end
 
 return MainMenu

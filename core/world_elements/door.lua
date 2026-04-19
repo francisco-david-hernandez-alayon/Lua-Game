@@ -1,35 +1,50 @@
--- core/world_elements/door.lua
 local Door = {}
 Door.__index = Door
 
-function Door.new(id, sprite)
+local TRIGGER_DIST = 16  -- pixels to trigger door switch
+
+function Door.new(id, sprite, targetState, open)
+    assert(type(id) == "string", "id must be a string")
+    assert(type(targetState) == "string", "targetState must be a string")
     return setmetatable({
-        id   = id,
-        sprite = love.graphics.newImage(sprite),
+        id          = id,
+        sprite      = love.graphics.newImage(sprite),
+        targetState = targetState,
         x    = nil,
         y    = nil,
-        w    = nil,
-        h    = nil,
-        open = false,
+        open = open or false,
     }, Door)
+end
+
+function Door:openDoor()
+    self.open = true
+end
+
+function Door:update(px, py, sm)
+    if not self.x   then return end
+    if not self.open then return end
+
+    local dist = math.sqrt((px - self.x)^2 + (py - self.y)^2)
+
+    --print("DOOR OPEN: " .. self.id .. ", dist-to-player:" .. dist .. " umbral:" .. TRIGGER_DIST .. " comparison:" .. tostring(dist < TRIGGER_DIST)) -- DEBUG
+
+    if dist < TRIGGER_DIST then
+        sm.switch(self.targetState)
+    end
 end
 
 function Door:draw(tx, ty, scale)
     if not self.x then return end
     local sx = (self.x - tx) * scale
     local sy = (self.y - ty) * scale
-    local ox = self.sprite:getWidth() / 2
+    local ox = self.sprite:getWidth()  / 2
     local oy = self.sprite:getHeight() / 2
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(self.sprite, sx, sy, 0, scale, scale, ox, oy)
     love.graphics.setColor(1, 1, 0)
-    local font = love.graphics.getFont()
+    local font  = love.graphics.getFont()
     local textW = font:getWidth(self.id)
     love.graphics.print(self.id, sx - textW / 2, sy - 12 * scale)
-    love.graphics.setColor(1, 1, 1)
-
-
-    -- Debug center point
     love.graphics.setColor(1, 1, 1)
     love.graphics.setPointSize(6)
     love.graphics.points(sx, sy)

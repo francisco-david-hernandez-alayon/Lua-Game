@@ -1,5 +1,16 @@
 local StateManager = require("core.state_manager")
 
+-- DEV SCREEN MODE
+local DEV = true -- true = windowed half screen, false = fullscreen
+
+if DEV then
+    local sw = love.window.getDesktopDimensions()
+    love.window.setMode(sw / 2, love.window.getDesktopDimensions() / 2)
+else
+    love.window.setMode(0, 0, {fullscreen = true})
+end
+
+
 -- Execute when game start
 function love.load()
     require("core.settings").load()

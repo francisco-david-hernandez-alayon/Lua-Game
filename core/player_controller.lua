@@ -45,24 +45,26 @@ function PlayerController.new(world, spawn)
     return self
 end
 
-function PlayerController:update(dt)
+function PlayerController:update(dt, menuOpen)
     local inputX, inputY = 0, 0
 
-    if love.keyboard.isDown("w", "up") then
-        inputY = -1
-        self.dir = DIR.UP
-    end
-    if love.keyboard.isDown("s", "down") then
-        inputY = 1
-        self.dir = DIR.DOWN
-    end
-    if love.keyboard.isDown("a", "left") then
-        inputX = -1
-        self.dir = DIR.LEFT
-    end
-    if love.keyboard.isDown("d", "right") then
-        inputX = 1
-        self.dir = DIR.RIGHT
+    if not menuOpen then
+        if love.keyboard.isDown("w", "up") then
+            inputY = -1
+            self.dir = DIR.UP
+        end
+        if love.keyboard.isDown("s", "down") then
+            inputY = 1
+            self.dir = DIR.DOWN
+        end
+        if love.keyboard.isDown("a", "left") then
+            inputX = -1
+            self.dir = DIR.LEFT
+        end
+        if love.keyboard.isDown("d", "right") then
+            inputX = 1
+            self.dir = DIR.RIGHT
+        end
     end
 
     -- Sprint

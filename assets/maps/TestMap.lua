@@ -10,7 +10,7 @@ return {
   tilewidth = 32,
   tileheight = 32,
   nextlayerid = 18,
-  nextobjectid = 24,
+  nextobjectid = 26,
   properties = {},
   tilesets = {
     {
@@ -162,6 +162,83 @@ return {
           }
         }
       }
+    },
+    {
+      name = "tree-test",
+      firstgid = 5,
+      class = "",
+      tilewidth = 32,
+      tileheight = 64,
+      spacing = 0,
+      margin = 0,
+      columns = 1,
+      image = "../sprites/test/tree-test.png",
+      imagewidth = 32,
+      imageheight = 64,
+      objectalignment = "unspecified",
+      tilerendersize = "tile",
+      fillmode = "stretch",
+      tileoffset = {
+        x = 0,
+        y = 0
+      },
+      grid = {
+        orientation = "orthogonal",
+        width = 32,
+        height = 64
+      },
+      properties = {},
+      wangsets = {},
+      tilecount = 1,
+      tiles = {
+        {
+          id = 0,
+          objectGroup = {
+            type = "objectgroup",
+            draworder = "index",
+            id = 3,
+            name = "",
+            class = "",
+            visible = true,
+            opacity = 1,
+            offsetx = 0,
+            offsety = 0,
+            parallaxx = 1,
+            parallaxy = 1,
+            properties = {},
+            objects = {
+              {
+                id = 2,
+                name = "",
+                type = "",
+                shape = "rectangle",
+                x = 0.5,
+                y = 0,
+                width = 31.5,
+                height = 63.5,
+                rotation = 0,
+                opacity = 1,
+                visible = true,
+                properties = {}
+              },
+              {
+                id = 3,
+                name = "",
+                type = "",
+                shape = "rectangle",
+                x = -15.5,
+                y = -32.75,
+                width = 0,
+                height = 0,
+                rotation = 0,
+                opacity = 1,
+                visible = true,
+                properties = {}
+              }
+            }
+          }
+        }
+      }
     }
   },
   layers = {
@@ -212,7 +289,7 @@ return {
       width = 30,
       height = 20,
       id = 6,
-      name = "Shrubs",
+      name = "colliders",
       class = "",
       visible = true,
       opacity = 1,
@@ -227,19 +304,19 @@ return {
         4, 4, 4, 4, 0, 0, 0, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
         4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
         4, 4, 4, 0, 0, 0, 4, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4, 4, 4, 4, 4,
-        4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4,
+        4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4,
         4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4,
         4, 4, 4, 4, 4, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4,
         4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 4, 4,
         4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4,
-        4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 4, 4, 4,
+        4, 4, 4, 4, 0, 5, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 4, 4, 4,
         4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4, 4,
-        4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4, 4,
+        4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 4, 4, 4, 4,
         4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4, 4,
         4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4, 4,
-        4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 4, 4, 4, 4, 4, 4,
+        4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 4, 4, 4, 4, 4, 4,
         4, 4, 4, 4, 4, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4, 4, 4, 4, 4,
-        4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+        4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 5, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
         4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
         4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
         4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4
@@ -249,7 +326,7 @@ return {
       type = "objectgroup",
       draworder = "topdown",
       id = 10,
-      name = "spawn point",
+      name = "spawn_point",
       class = "",
       visible = true,
       opacity = 1,
@@ -261,27 +338,13 @@ return {
       objects = {
         {
           id = 11,
-          name = "spawn point",
+          name = "spawn_point",
           type = "",
           shape = "rectangle",
-          x = 641,
-          y = 128,
+          x = 609,
+          y = 417,
           width = 30,
           height = 29,
-          rotation = 0,
-          opacity = 1,
-          visible = true,
-          properties = {}
-        },
-        {
-          id = 12,
-          name = "",
-          type = "",
-          shape = "rectangle",
-          x = 772,
-          y = 727,
-          width = 0,
-          height = 0,
           rotation = 0,
           opacity = 1,
           visible = true,
@@ -389,14 +452,14 @@ return {
           properties = {},
           objects = {
             {
-              id = 21,
+              id = 24,
               name = "door_1",
               type = "",
-              shape = "rectangle",
-              x = 448,
-              y = 449,
-              width = 30,
-              height = 28,
+              shape = "point",
+              x = 463.333,
+              y = 468,
+              width = 0,
+              height = 0,
               rotation = 0,
               opacity = 1,
               visible = true,

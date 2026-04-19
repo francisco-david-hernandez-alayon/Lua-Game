@@ -39,7 +39,7 @@ function MapLoader.load(mapPath, npcs, moving_npcs, objects, doors)
     -- Get spawn
     local spawn
     for _, object in pairs(map.objects) do
-        if object.name == "spawn point" then
+        if object.name == "spawn_point" then
             spawn = object
             break
         end
@@ -47,7 +47,7 @@ function MapLoader.load(mapPath, npcs, moving_npcs, objects, doors)
 
     -- Remove STI object layers
     local toRemove = {
-        "spawn point",
+        "spawn_point",
         "world.npcs",
         "world.moving_npcs",
         "world.objects",

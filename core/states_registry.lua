@@ -13,6 +13,7 @@ StatesRegistry.states = {
     -- TESTING
     main_test = StatesTestPath .. ".main_test",
     map_test = StatesTestPath .. ".map_test",
+    map_test2 = StatesTestPath .. ".map_test2",
 
     -- GAME
     game = StatesGamePath .. ".game",
@@ -23,6 +24,8 @@ function StatesRegistry.getState(name)
     if not path then
         error("State not found: " .. tostring(name))
     end
+
+    print("[OK] switch to " .. path)
     return require(path)
 end
 

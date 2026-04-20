@@ -20,5 +20,9 @@ return {
     -- STATE: PLAY MENU
     empty_slot = "Espacio vacío",
     controls_select = "ENTER = Seleccionar",
-    controls_delete = "D = Eliminar"
+    controls_delete = "D = Eliminar",
+
+    -- Dialogue
+    leave_chat = "Salir",
+    SimpleTalkOptionTEST1 = "HOLA JUGADOR!"
 }

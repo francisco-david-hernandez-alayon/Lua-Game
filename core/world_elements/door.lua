@@ -1,3 +1,5 @@
+local Distance = require("utils.distance")
+
 local Door = {}
 Door.__index = Door
 
@@ -24,11 +26,7 @@ function Door:update(px, py, sm)
     if not self.x   then return end
     if not self.open then return end
 
-    local dist = math.sqrt((px - self.x)^2 + (py - self.y)^2)
-
-    --print("DOOR OPEN: " .. self.id .. ", dist-to-player:" .. dist .. " umbral:" .. TRIGGER_DIST .. " comparison:" .. tostring(dist < TRIGGER_DIST)) -- DEBUG
-
-    if dist < TRIGGER_DIST then
+    if Distance.inRange(px, py, self.x, self.y, TRIGGER_DIST) then
         sm.switch(self.targetState)
     end
 end

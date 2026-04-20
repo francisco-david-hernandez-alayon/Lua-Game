@@ -53,6 +53,12 @@ function MapLoader.load(mapPath, npcs, moving_npcs, objects, doors)
         "world.objects",
         "world.doors",
     }
+
+    -- colliders if is objectgroup
+    if map.layers["colliders"] and map.layers["colliders"].type == "objectgroup" then
+        table.insert(toRemove, "colliders")
+    end
+    
     for _, name in ipairs(toRemove) do
         if map.layers[name] then
             map:removeLayer(name)

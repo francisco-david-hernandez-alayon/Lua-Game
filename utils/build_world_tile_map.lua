@@ -8,7 +8,7 @@
 --   "objects"      Points, name = object identifier (e.g. "item_1")
 --   "doors"        Points, name = target state (e.g. "door_1")
 --
--- COLLISIONS: automatic from tilelayer tiles with objectGroups in tileset.
+-- COLLISIONS: automatic from tilelayer tiles with objectGroups in tileset and for a object group calles "colliders"
 -- NOTE: INFINITE TILED MAPS CANNOT BE LOADED
 -- ─────────────────────────────────────────────────────────────────
 
@@ -24,10 +24,10 @@ local function buildObjectColliders(map, world)
     local layer = map.layers["colliders"]
     local count = 0
 
-    if not layer then
-        print("[WARN] build_world_tile_map: layer 'colliders' not found")
-        return 0
-    end
+    -- Check whether it is a group of objects called colliders
+    if not layer then return 0 end
+    if layer.type ~= "objectgroup" then return 0 end  -- skip if not object layer
+    if not layer.objects then return 0 end
 
     for _, obj in pairs(layer.objects) do
         local body = love.physics.newBody(world, obj.x + obj.width / 2, obj.y + obj.height / 2, "static")
@@ -183,6 +183,13 @@ end
 
 -- MAIN FUNCTION
 local function buildWorldTileMap(map, world)
+
+    for name, layer in pairs(map.layers) do
+    if type(name) == "string" then
+        print("LAYER: '" .. name .. "' type: " .. tostring(layer.type))
+    end
+end
+
     local tileCount   = buildTileCollisions(map, world)
     local objectCount = buildObjectColliders(map, world)
     print("[INFO] total colliders: " .. tileCount + objectCount)

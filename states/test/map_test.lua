@@ -52,10 +52,9 @@ end
 function MapTest.update(dt)
     MapTest.world:update(dt)
     MapTest.map:update(dt)
-    MapTest.player:update(dt, UIController.isMenuOpen() or UIController.isDialogueActive())
-    UIController.update(dt)
+    MapTest.player:update(dt, UIController.isMenuOpen())
 
-    if not UIController.isMenuOpen() and not UIController.isDialogueActive() then
+    if not UIController.isMenuOpen() then
         local px, py = MapTest.player:getPosition()
         for _, door in ipairs(MapTest.worldData.doors) do
             door:update(px, py, MapTest.sm)
@@ -63,36 +62,31 @@ function MapTest.update(dt)
     end
 end
 
+
+
 function MapTest.keypressed(key)
     UIController.keypressed(key, MapTest.sm)
 
-    if UIController.isDialogueActive() then
-        UIController.keypressedDialogue(key)
-        return
-    end
-
     if not UIController.isMenuOpen() then
-        if key == "e" then
-            local px, py = MapTest.player:getPosition()
-            for _, npc in ipairs(MapTest.worldData.npcs) do
-                local result = npc:interact(px, py)
-                if result then
-                    if result.type == "simple_talk" then
-                        UIController.showSimpleTalk(result.textKey)
-                    elseif result.type == "dialogue" then
-                        UIController.showDialogue(result.option)
-                    elseif result.type == "menu" then
-                        UIController.showNpcMenu(result.options)
-                    end
-                    break
-                end
-            end
-        elseif key == "escape" then
+        if key == "escape" then
             MapTest.sm.switch("main_menu")
         elseif key == "f1" then
             MapTest.debug = not MapTest.debug
         end
     end
+end
+
+function MapTest.draw()
+    local px, py = MapTest.player:getPosition()
+    Camera.update(MapTest.cam, px, py)
+
+    UIController.draw(
+        MapTest.map,
+        MapTest.worldData,
+        MapTest.player,
+        MapTest.cam
+    )
+
 
     -- Debug
     if MapTest.debug then

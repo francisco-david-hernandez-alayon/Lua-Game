@@ -1,18 +1,40 @@
 -- ui/ui_controller.lua
-local L          = require("core.localization.localization")
-local DialogueUI = require("ui.dialogue_ui")  -- included as submodule
-
 local UIController = {}
 
--- Expose DialogueUI through UIController
-UIController.isDialogueActive = DialogueUI.isActive
-UIController.showSimpleTalk   = DialogueUI.showSimpleTalk
-UIController.showDialogue     = DialogueUI.showDialogue
-UIController.showNpcMenu      = DialogueUI.showMenu
-UIController.updateDialogue   = DialogueUI.update
-UIController.keypressedDialogue = DialogueUI.keypressed
+-- SPRITES
+local menuSprite = love.graphics.newImage("assets/sprites/test/handle-game-menu-test.png")
+local appSprite  = love.graphics.newImage("assets/sprites/test/app-test.png")
 
--- ... resto del código igual que antes ...
+-- SCALE
+local MENU_SCALE = 3
+local APP_SCALE  = MENU_SCALE - 1
+local APP_SIZE   = 32 * APP_SCALE
+local APP_PAD    = APP_SIZE / 4  
+local ROW_PAD    = APP_SIZE / 2   
+
+local COLS = 3
+local ROWS = 2
+
+local APPS = {
+    { name = "app1" },
+    { name = "app2" },
+    { name = "app3" },
+    { name = "app4" },
+    { name = "app5" },
+    { name = "menu" },
+}
+
+local menuOpen    = false
+local selectedCol = 1
+local selectedRow = 1
+
+local function getIndex(col, row)
+    return (row - 1) * COLS + col
+end
+
+local function getSelected()
+    return APPS[getIndex(selectedCol, selectedRow)]
+end
 
 function UIController.keypressed(key, sm)
     if key == "tab" then
@@ -30,7 +52,7 @@ function UIController.keypressed(key, sm)
     if key == "right" then selectedCol = math.min(COLS, selectedCol + 1) end
 
     if key == "return" then
-        local app = menuGetSelected()
+        local app = getSelected()
         if app and app.name == "menu" then
             menuOpen = false
             sm.switch("main_menu")
@@ -40,10 +62,6 @@ end
 
 function UIController.isMenuOpen()
     return menuOpen
-end
-
-function UIController.update(dt)
-    DialogueUI.update(dt)
 end
 
 function UIController.draw(map, worldData, player, cam)
@@ -73,17 +91,13 @@ function UIController.draw(map, worldData, player, cam)
     -- 6. Draw player on top of world
     player:draw(tx, ty, scale)
 
-    -- 7. Draw dialogue UI on top of world, below HUD
-    local px, py = player:getPosition()
-    DialogueUI.draw(px, py, tx, ty, scale)
-
-    -- 8. HUD: tab hint centered at bottom
+    -- 7. HUD: tab hint centered at bottom
     love.graphics.setColor(1, 1, 1)
     local hint  = menuOpen and "[Tab] Cerrar menu" or "[Tab] Abrir menu"
     local hintW = font:getWidth(hint)
     love.graphics.print(hint, sw / 2 - hintW / 2, sh - 24)
 
-    -- 9. Tab menu panel (bottom right)
+    -- 8. Tab menu panel (bottom right)
     if menuOpen then
         local spriteW = menuSprite:getWidth()  * MENU_SCALE
         local spriteH = menuSprite:getHeight() * MENU_SCALE
@@ -93,6 +107,7 @@ function UIController.draw(map, worldData, player, cam)
         love.graphics.setColor(1, 1, 1)
         love.graphics.draw(menuSprite, mx, my, 0, MENU_SCALE, MENU_SCALE)
 
+        -- Grid centered horizontally, in bottom half of sprite
         local gridW      = COLS * APP_SIZE + (COLS - 1) * APP_PAD
         local gridStartX = mx + (spriteW - gridW) / 2
         local gridStartY = my + spriteH / 2 + APP_SIZE / 2
@@ -104,6 +119,7 @@ function UIController.draw(map, worldData, player, cam)
             local ax = gridStartX + (col - 1) * (APP_SIZE + APP_PAD)
             local ay = gridStartY + (row - 1) * (APP_SIZE + ROW_PAD)
 
+            -- Highlight selected
             if col == selectedCol and row == selectedRow then
                 love.graphics.setColor(1, 1, 0, 0.3)
                 love.graphics.rectangle("fill", ax - 2, ay - 2, APP_SIZE + 4, APP_SIZE + 4)

@@ -18,8 +18,46 @@ local function findLayer(map, name)
     return map.layers[PREFIX .. name]
 end
 
+-- COLLISIONS
+-- Object colliders: reads "colliders" object layer and builds static bodies from rectangles
+local function buildObjectColliders(map, world)
+    local layer = map.layers["colliders"]
+    local count = 0
+
+    if not layer then
+        print("[WARN] build_world_tile_map: layer 'colliders' not found")
+        return 0
+    end
+
+    for _, obj in pairs(layer.objects) do
+        local body = love.physics.newBody(world, obj.x + obj.width / 2, obj.y + obj.height / 2, "static")
+        local shape
+
+        if obj.shape == "rectangle" then
+            shape = love.physics.newRectangleShape(obj.width, obj.height)
+        elseif obj.shape == "polygon" then
+            local verts = {}
+            for _, v in ipairs(obj.polygon) do
+                table.insert(verts, v.x)
+                table.insert(verts, v.y)
+            end
+            shape = love.physics.newPolygonShape(verts)
+        end
+
+        if shape then
+            love.physics.newFixture(body, shape)
+            count = count + 1
+        end
+    end
+
+    print("[OK] object colliders loaded: " .. count)
+    return count
+end
+
+
 -- Tile collisions: reads ALL tilelayers and builds static bodies from objectGroups
 local function buildTileCollisions(map, world)
+    local count = 0
     for _, layer in pairs(map.layers) do
         if layer.type == "tilelayer" then
             for y = 1, layer.height do
@@ -29,16 +67,14 @@ local function buildTileCollisions(map, world)
                         for _, obj in pairs(tile.objectGroup.objects) do
                             local tileset = nil
                             for _, ts in ipairs(map.tilesets) do
-                                if tile.gid >= ts.firstgid then
-                                    tileset = ts
-                                end
+                                if tile.gid >= ts.firstgid then tileset = ts end
                             end
 
                             local tileH = (tileset and tileset.tileheight or map.tileheight)
-                            local extraY = tileH - map.tileheight  -- 64 - 32 = 32 for trees
+                            local extraY = tileH - map.tileheight
 
                             local wx = (x - 1) * map.tilewidth
-                            local wy = (y - 1) * map.tileheight - extraY  -- shift up
+                            local wy = (y - 1) * map.tileheight - extraY
                             local body = love.physics.newBody(world, wx, wy, "static")
                             local shape
 
@@ -60,6 +96,7 @@ local function buildTileCollisions(map, world)
 
                             if shape then
                                 love.physics.newFixture(body, shape)
+                                count = count + 1
                             end
                         end
                     end
@@ -67,8 +104,11 @@ local function buildTileCollisions(map, world)
             end
         end
     end
+    print("[OK] tile colliders loaded: " .. count)
+    return count
 end
 
+-- WORLD DATA
 local function buildNpcs(layer)
     local npcs = {}
     if not layer then
@@ -141,8 +181,11 @@ local function buildDoors(layer)
     return doors
 end
 
+-- MAIN FUNCTION
 local function buildWorldTileMap(map, world)
-    buildTileCollisions(map, world)
+    local tileCount   = buildTileCollisions(map, world)
+    local objectCount = buildObjectColliders(map, world)
+    print("[INFO] total colliders: " .. tileCount + objectCount)
 
     local npcsLayer       = findLayer(map, "npcs")
     local movingNpcsLayer = findLayer(map, "moving_npcs")

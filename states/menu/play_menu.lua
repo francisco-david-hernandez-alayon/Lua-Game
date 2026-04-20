@@ -1,5 +1,6 @@
-local SaveSystem = require("core.save_system")
 local Game = require("core.game")
+local GameController = require("core.game_controller")
+local SaveSystem = require("core.save_system")
 local PlayMenu = {}
 
 
@@ -33,6 +34,7 @@ function PlayMenu.keypressed(key)
 
         if slot.data then
             -- LOAD
+            GameController.load(slot.data)
             PlayMenu.sm.switch("game", slot.data)
         else
             -- NEW GAME
@@ -42,7 +44,7 @@ function PlayMenu.keypressed(key)
             })
 
             SaveSystem.save(slot.slot, newGame)
-
+            GameController.load(newGame)
             PlayMenu.sm.switch("game", newGame)
         end
     elseif key == "d" then

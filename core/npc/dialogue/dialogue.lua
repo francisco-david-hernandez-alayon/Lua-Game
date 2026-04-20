@@ -1,73 +1,62 @@
 -- core/npc/dialogue/dialogue.lua
 --
--- A full dialogue sequence made of DialogueLines indexed by id.
--- Tracks the current line and handles auto-advance and player choices.
--- When the sequence ends (no next line), dialogue is marked as finished.
+-- Directed graph of DialogueNodes.
+-- Nodes are indexed by dialogNodeId.
+-- advance() follows nextNodeId of current node.
+-- choose(i) follows nextNodeId of the i-th active player option.
 
 local Dialogue = {}
 Dialogue.__index = Dialogue
 
-function Dialogue.new(lines)
-    -- lines: ordered list of DialogueLine; first line is the entry point
-    local self = setmetatable({}, Dialogue)
-    self.lines    = {}
-    self.order    = {}  -- ordered list of ids for auto-advance
-    self.current  = nil
-    self.finished = false
+function Dialogue.new(nodes)
+    -- nodes: ordered list of DialogueNode — first is entry point
+    local self  = setmetatable({}, Dialogue)
+    self.nodes   = {}
+    self.startId = nil
+    self.currentNodeId = nil
+    self.finished      = false
 
-    for i, line in ipairs(lines) do
-        self.lines[line.id] = line
-        self.order[i]       = line.id
-    end
-
-    if #lines > 0 then
-        self.current = lines[1].id
+    for i, node in ipairs(nodes) do
+        self.nodes[node.dialogNodeId] = node
+        if i == 1 then
+            self.startId       = node.dialogNodeId
+            self.currentNodeId = node.dialogNodeId
+        end
     end
 
     return self
 end
 
--- Returns the current DialogueLine
-function Dialogue:getCurrentLine()
-    if not self.current then return nil end
-    return self.lines[self.current]
+function Dialogue:getCurrentNode()
+    if not self.currentNodeId then return nil end
+    return self.nodes[self.currentNodeId]
 end
 
--- Advance to next line automatically (call when autoAdvance() is true)
 function Dialogue:advance()
-    if self.finished then return end
+    local node = self:getCurrentNode()
+    if not node then return end
 
-    for i, id in ipairs(self.order) do
-        if id == self.current then
-            if self.order[i + 1] then
-                self.current = self.order[i + 1]
-            else
-                self.finished = true
-                self.current  = nil
-            end
-            return
-        end
-    end
-end
-
--- Jump to a specific line by id (call when player picks an option)
-function Dialogue:jumpTo(lineId)
-    if self.lines[lineId] then
-        self.current = lineId
+    if node.nextNodeId and self.nodes[node.nextNodeId] then
+        self.currentNodeId = node.nextNodeId
     else
-        self.finished = true
-        self.current  = nil
+        self.finished      = true
+        self.currentNodeId = nil
     end
 end
 
--- Player picks an option by index from the active options list
 function Dialogue:choose(optionIndex)
-    local line = self:getCurrentLine()
-    if not line then return end
-    local active = line:getActiveOptions()
+    local node = self:getCurrentNode()
+    if not node then return end
+
+    local active = node:getActiveOptions()
     local opt    = active[optionIndex]
-    if opt then
-        self:jumpTo(opt.jumpsTo)
+    if not opt then return end
+
+    if opt.nextNodeId and self.nodes[opt.nextNodeId] then
+        self.currentNodeId = opt.nextNodeId
+    else
+        self.finished      = true
+        self.currentNodeId = nil
     end
 end
 
@@ -75,10 +64,9 @@ function Dialogue:isFinished()
     return self.finished
 end
 
--- Reset dialogue to beginning
 function Dialogue:reset()
-    self.finished = false
-    self.current  = self.order[1]
+    self.finished      = false
+    self.currentNodeId = self.startId
 end
 
 return Dialogue

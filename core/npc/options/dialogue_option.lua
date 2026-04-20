@@ -15,8 +15,8 @@ function DialogueOption.new(dialogue)
     }, DialogueOption)
 end
 
-function DialogueOption:getCurrentLine()
-    return self.dialogue:getCurrentLine()
+function DialogueOption:getCurrentNode()
+    return self.dialogue:getCurrentNode()
 end
 
 function DialogueOption:advance()

@@ -1,9 +1,12 @@
+local GameController = require("core.game_controller")
 local SimpleMenuController = require("ui.simple_menu_controller")
 local MainMenu = {}
 
 function MainMenu.enter(sm, L)
     MainMenu.sm = sm
     MainMenu.L = L
+
+    GameController.unload()  -- reset GameController
 
     MainMenu.menu = SimpleMenuController.new({
         -- TESTING STATE

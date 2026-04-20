@@ -26,6 +26,8 @@ function Npc.new(id, sprite, options)
         y         = nil,
         talkTimer = 0,
         talkText  = nil,
+        inRange   = false,
+        
     }, Npc)
 end
 
@@ -83,13 +85,17 @@ function Npc:triggerSimpleTalk(textKey)
     self.talkTimer = 3
 end
 
-function Npc:update(dt)
+
+function Npc:update(dt, px, py)
     if self.talkTimer > 0 then
         self.talkTimer = self.talkTimer - dt
         if self.talkTimer <= 0 then
             self.talkText  = nil
             self.talkTimer = 0
         end
+    end
+    if px and py then
+        self.inRange = self:playerInRange(px, py)
     end
 end
 
@@ -108,6 +114,17 @@ function Npc:draw(tx, ty, scale)
     love.graphics.setColor(1, 1, 0)
     local textW = font:getWidth(self.id)
     love.graphics.print(self.id, sx - textW / 2, sy - 12 * scale)
+
+    -- Show interact hint when in range
+    if self.inRange then
+        local font  = love.graphics.getFont()
+        local hint  = "[E]"
+        local hintW = font:getWidth(hint)
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.rectangle("fill", sx - hintW/2 - 4, sy - 28 * scale, hintW + 8, 18)
+        love.graphics.setColor(0, 0, 0)
+        love.graphics.print(hint, sx - hintW/2, sy - 26 * scale)
+    end
 
     -- Simple talk bubble above NPC
     if self.talkText then

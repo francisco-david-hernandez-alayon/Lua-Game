@@ -1,7 +1,7 @@
 local MapLoader        = require("core.map_loader")
 local PlayerController = require("core.player_controller")
 local Camera           = require("core.camera")
-local UIController     = require("ui.ui_controller")
+local UIController     = require("ui.ui_game_controller")
 local Npc              = require("core.npc.npc")
 local MovingNpc        = require("core.world_elements.moving_npc")
 local Object           = require("core.world_elements.object")
@@ -54,6 +54,10 @@ function MapTest.update(dt)
     MapTest.map:update(dt)
     MapTest.player:update(dt, UIController.isMenuOpen())
 
+    for _, npc in ipairs(MapTest.worldData.npcs) do
+        npc:update(dt)
+    end
+
     if not UIController.isMenuOpen() then
         local px, py = MapTest.player:getPosition()
         for _, door in ipairs(MapTest.worldData.doors) do
@@ -66,6 +70,21 @@ end
 
 function MapTest.keypressed(key)
     UIController.keypressed(key, MapTest.sm)
+
+    if key == "e" then
+        local px, py = MapTest.player:getPosition()
+        for _, npc in ipairs(MapTest.worldData.npcs) do
+            local result = npc:interact(px, py)
+            if result then
+                if result.type == "simple_talk" then
+                    npc:triggerSimpleTalk(result.textKey)
+                else
+                    MapTest.sm.switch("npc_interaction", npc)
+                end
+                break
+            end
+        end
+    end
 
     if not UIController.isMenuOpen() then
         if key == "escape" then

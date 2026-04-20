@@ -3,32 +3,32 @@
 -- Base NPC class. Holds position, sprite, and a list of NpcOptions.
 --
 -- INTERACTION RULES:
---   1. If the NPC has an active TalkOption → use it directly, skip option menu.
---      (Even if other options exist, talk takes priority when active.)
---   2. If no active TalkOption → show a menu of all active options.
---   3. If only one active option (non-talk) → trigger it directly, skip menu.
+--   1. If the NPC has an active SimpleTalkOption → trigger it directly, show bubble above NPC.
+--   2. If no SimpleTalkOption → show menu of all active options.
+--   3. If only one active option → trigger it directly, skip menu.
 --
 -- Use Distance.inRange() to check if player is close enough before calling interact().
 
+local L        = require("core.localization.localization")
 local Distance = require("utils.distance")
 
 local Npc = {}
 Npc.__index = Npc
 
-local INTERACT_RANGE = 32  -- pixels
+local INTERACT_RANGE = 32
 
 function Npc.new(id, sprite, options)
-    -- options: list of NpcOption
     return setmetatable({
-        id      = id,
-        sprite  = love.graphics.newImage(sprite),
-        options = options or {},
-        x       = nil,
-        y       = nil,
+        id        = id,
+        sprite    = love.graphics.newImage(sprite),
+        options   = options or {},
+        x         = nil,
+        y         = nil,
+        talkTimer = 0,
+        talkText  = nil,
     }, Npc)
 end
 
--- Returns active TalkOption if present
 -- Returns active SimpleTalkOption if present — takes full priority
 function Npc:getSimpleTalkOption()
     for _, npcOpt in ipairs(self.options) do
@@ -39,8 +39,7 @@ function Npc:getSimpleTalkOption()
     return nil
 end
 
-
--- Returns all active non-talk options
+-- Returns all active options
 function Npc:getActiveOptions()
     local active = {}
     for _, npcOpt in ipairs(self.options) do
@@ -57,16 +56,10 @@ function Npc:playerInRange(px, py)
     return Distance.inRange(px, py, self.x, self.y, INTERACT_RANGE)
 end
 
--- Main interact entry point. Returns interaction result:
---   { type = "talk",   line = DialogueLine }
---   { type = "trade",  shop = TradeOption  }
---   { type = "combat", option = CombatOption }
---   { type = "menu",   options = list of NpcOption }  -- player must pick
---   nil if not in range
+-- Main interact entry point
 function Npc:interact(px, py)
     if not self:playerInRange(px, py) then return nil end
 
-    -- SimpleTalk takes full priority over everything else
     local simpleTalk = self:getSimpleTalkOption()
     if simpleTalk then
         return { type = "simple_talk", textKey = simpleTalk:interact() }
@@ -84,21 +77,50 @@ function Npc:interact(px, py)
     return { type = "menu", options = active }
 end
 
+-- Triggers the simple talk bubble above the NPC for 3 seconds
+function Npc:triggerSimpleTalk(textKey)
+    self.talkText  = L.get(textKey)
+    self.talkTimer = 3
+end
+
+function Npc:update(dt)
+    if self.talkTimer > 0 then
+        self.talkTimer = self.talkTimer - dt
+        if self.talkTimer <= 0 then
+            self.talkText  = nil
+            self.talkTimer = 0
+        end
+    end
+end
+
 function Npc:draw(tx, ty, scale)
     if not self.x then return end
-    local sx = (self.x - tx) * scale
-    local sy = (self.y - ty) * scale
-    local ox = self.sprite:getWidth()  / 2
-    local oy = self.sprite:getHeight() / 2
+    local sx   = (self.x - tx) * scale
+    local sy   = (self.y - ty) * scale
+    local ox   = self.sprite:getWidth()  / 2
+    local oy   = self.sprite:getHeight() / 2
+    local font = love.graphics.getFont()
+
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(self.sprite, sx, sy, 0, scale, scale, ox, oy)
+
+    -- NPC id label
     love.graphics.setColor(1, 1, 0)
-    local font  = love.graphics.getFont()
     local textW = font:getWidth(self.id)
     love.graphics.print(self.id, sx - textW / 2, sy - 12 * scale)
+
+    -- Simple talk bubble above NPC
+    if self.talkText then
+        local bw = font:getWidth(self.talkText) + 16
+        local bx = sx - bw / 2
+        local by = sy - 48 * scale
+        love.graphics.setColor(0, 0, 0, 0.85)
+        love.graphics.rectangle("fill", bx, by, bw, 24)
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.print(self.talkText, bx + 8, by + 4)
+    end
+
     love.graphics.setColor(1, 1, 1)
-    love.graphics.setPointSize(6)
-    love.graphics.points(sx, sy)
 end
 
 return Npc

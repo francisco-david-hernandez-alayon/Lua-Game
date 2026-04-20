@@ -16,7 +16,9 @@ StatesRegistry.states = {
     map_test2 = StatesTestPath .. ".map_test2",
 
     -- GAME
+    npc_interaction = StatesGamePath .. ".npc_interaction",
     game = StatesGamePath .. ".game",
+    
 }
 
 function StatesRegistry.getState(name)

@@ -16,6 +16,7 @@ function MapTest2.enter(sm, L)
     MapTest2.sm    = sm
     MapTest2.debug = false
 
+
     local npcs = {
         Npc.new("npc_1",  TEST .. "PlayerTest.png"),
         Npc.new("npc_2",  TEST .. "PlayerTest.png"),
@@ -32,8 +33,9 @@ function MapTest2.enter(sm, L)
         Door.new("door_2", TEST .. "door_1.png", "door_1", "map_test", true),
     }
 
+
     -- LOAD WORLD
-    MapTest2.map, MapTest2.world, MapTest2.spawn, MapTest2.worldData = MapLoader.load("assets/maps/TestMap.lua", npcs, moving_npcs, objects, doors)
+    MapTest2.map, MapTest2.world, MapTest2.spawn, MapTest2.worldData = MapLoader.load("assets/maps/TestMap2.lua", npcs, moving_npcs, objects, doors)
 
     -- Get player spawn
     local startX, startY = GameController.resolveStartPosition(MapTest2.worldData, MapTest2.spawn)

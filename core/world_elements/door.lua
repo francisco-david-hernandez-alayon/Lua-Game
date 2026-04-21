@@ -55,6 +55,8 @@ function Door:update(px, py, sm, gameController)
     end
 
     if Distance.inRange(px, py, self.x, self.y, TRIGGER_DIST) then
+        -- DEBUG
+        --print("........DOOR " .. self.id .. " tp to " .. self.targetId .. " in state " .. self.targetState)
         gameController.setDoorTarget(self.targetId)
         sm.switch(self.targetState)
     end

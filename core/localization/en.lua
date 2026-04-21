@@ -49,7 +49,7 @@ return {
     controls_select = "ENTER = Select",
     controls_delete = "D = Delete",
 
-    --INVENTORY
+    -- INVENTORY
     inv_tab_items     = "Items",
     inv_tab_mission   = "Mission",
     inv_tab_languages = "Languages",
@@ -58,4 +58,18 @@ return {
     inv_back          = "Back",
     inventory_items_full     = "Your inventory is full.",
     inventory_languages_full = "No more language slots available.",
+
+    -- BATTLE
+    battle_attack        = "Attack",
+    battle_swap          = "Swap Language",
+    battle_back          = "Back",
+    battle_you           = "You",
+    battle_win           = "You win!",
+    battle_lose          = "You lose!",
+    battle_remaining     = "Languages remaining",
+    battle_exit          = "Continue",
+    battle_pick_language = "Choose a language!",
+    battle_menu_action   = "What will you do?",
+    battle_menu_attack   = "Choose an attack:",
+    battle_menu_swap     = "Choose a language:",
 }

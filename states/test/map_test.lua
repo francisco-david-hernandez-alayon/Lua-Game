@@ -23,18 +23,18 @@ local PlayerDialogueOption = require("core.npc.dialogue.player_dialogue_option")
 -- NPC 1: has dialogue option
 local function makeDialogueTestNpc(id, spritePath)
     local initialDialogue = Dialogue.new({
-        DialogueNode.new("intro_1", id, "dialogueTest1_intro_1", "intro_2", {}),
-        DialogueNode.new("intro_2", id, "dialogueTest1_intro_2", nil,       {}),
+        DialogueNode.new("intro_1", id, "dialogueTest1_intro_1", "intro_2", {}, nil),
+        DialogueNode.new("intro_2", id, "dialogueTest1_intro_2", nil,       {}, "test_event_1"),  -- emits on advance
     })
 
     local dialogue = Dialogue.new({
-        DialogueNode.new("node_1", id, "dialogueTest1_1", "node_2", {}),
+        DialogueNode.new("node_1", id, "dialogueTest1_1", "node_2", {}, nil),
         DialogueNode.new("node_2", id, "dialogueTest1_2", nil, {
-            PlayerDialogueOption.new("dialoguePlayerTest1_1", "node_3"),
-            PlayerDialogueOption.new("dialoguePlayerTest1_2", "node_4"),
-        }),
-        DialogueNode.new("node_3", id, "dialogueTest1_3", nil, {}),
-        DialogueNode.new("node_4", id, "dialogueTest1_4", nil, {}),
+            PlayerDialogueOption.new("dialoguePlayerTest1_1", "node_3", "test_event_1"),  -- emits on choose
+            PlayerDialogueOption.new("dialoguePlayerTest1_2", "node_4", "test_event_2"),  -- emits on choose
+        }, nil),
+        DialogueNode.new("node_3", id, "dialogueTest1_3", nil, {}, nil),
+        DialogueNode.new("node_4", id, "dialogueTest1_4", nil, {}, nil),
     })
 
     local dialogueOpt = DialogueOption.new(dialogue)
@@ -52,6 +52,39 @@ local function makeSimpleTalkTestNpc(id, spritePath)
 end
 
 
+
+------------------ BATLE TESTING --------------------------------------
+local BattleController     = require("core.battle.battle_controller")
+local ProgrammingLanguage  = require("core.battle.programming_language")
+local Attack               = require("core.battle.attack")
+
+local function buildTestBattle()
+    -- Enemy: 2 languages, 1 attack each
+    local enemyLua = ProgrammingLanguage.new("Lua", 80, 5)
+    enemyLua:addAttack(Attack.new("atk_metatables", 20))
+
+    local enemyC = ProgrammingLanguage.new("C", 100, 3)
+    enemyC:addAttack(Attack.new("atk_pointers", 30))
+
+    -- Player: 3 languages, 2 attacks each
+    local playerPy = ProgrammingLanguage.new("Python", 90, 6)
+    playerPy:addAttack(Attack.new("atk_list_comp",  18))
+    playerPy:addAttack(Attack.new("atk_decorators", 25))
+
+    local playerJS = ProgrammingLanguage.new("JavaScript", 70, 7)
+    playerJS:addAttack(Attack.new("atk_callback",  15))
+    playerJS:addAttack(Attack.new("atk_promise",   22))
+
+    local playerRust = ProgrammingLanguage.new("Rust", 110, 4)
+    playerRust:addAttack(Attack.new("atk_ownership", 28))
+    playerRust:addAttack(Attack.new("atk_borrow",    20))
+
+    return BattleController.new(
+        "EnemyProgrammer",
+        { playerPy, playerJS, playerRust },
+        { enemyLua, enemyC }
+    )
+end
 
 function MapTest.enter(sm, L)
     MapTest.sm    = sm
@@ -77,21 +110,14 @@ function MapTest.enter(sm, L)
     -- LOAD WORLD
     MapTest.map, MapTest.world, MapTest.spawn, MapTest.worldData = MapLoader.load("assets/maps/TestMap.lua", npcs, moving_npcs, objects, doors)
 
-    -- Restore player position from target door or Last player position or Map Spawn
-    local game = GameController.getGame()
-    local targetDoorPosition = GameController.resolveDoorSpawn(MapTest.worldData)
-    local lastPlayerPosition     = game and game:getPlayerPosition() or nil
-    local startX = (targetDoorPosition and targetDoorPosition.x) or (lastPlayerPosition and lastPlayerPosition.x) or (MapTest.spawn and MapTest.spawn.x) or 64
-    local startY = (targetDoorPosition and targetDoorPosition.y) or (lastPlayerPosition and lastPlayerPosition.y) or (MapTest.spawn and MapTest.spawn.y) or 64
-
+    -- Get player spawn
+    local startX, startY = GameController.resolveStartPosition(MapTest.worldData, MapTest.spawn)
     MapTest.player = PlayerController.new(MapTest.world, { x = startX, y = startY })
     MapTest.cam    = Camera.new(5)
 
-    -- After resolvePositions and after spawn is known
-    if doors then
-        for _, door in ipairs(doors) do
-            door:checkSpawnProximity(startX, startY)
-        end
+    -- Check doors proximity To Player
+    for _, door in ipairs(MapTest.worldData.doors) do
+        door:checkSpawnProximity(startX, startY)
     end
 end
 
@@ -133,6 +159,12 @@ function MapTest.keypressed(key)
         end
     end
 
+    -- BATTLE TESTING
+    if key == "c" then
+        local bc = buildTestBattle()
+        MapTest.sm.switch("battle", bc, "map_test")
+    end
+
     if not UIController.isMenuOpen() then
         if key == "escape" then
             MapTest.sm.switch("main_menu")
@@ -140,11 +172,12 @@ function MapTest.keypressed(key)
             MapTest.debug = not MapTest.debug
 
             -- testing gamecontroller
-            local GameController = require("core.game_controller")
             GameController.trigger("test_event_1", "test")
 
         end
     end
+
+    
 end
 
 function MapTest.draw()

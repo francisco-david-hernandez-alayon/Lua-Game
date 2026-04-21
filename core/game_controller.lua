@@ -34,6 +34,7 @@ function GameController.update(state, player)
     --print("---Save player position in " .. state .. ": (" .. px .. ", " .. py .. ")")
 end
 
+---------- EVENTS ----------
 function GameController.emit(event)
     assert(currentGame, "[GameController] no active game session")
     assert(event and event.eventId and event.eventType, "[GameController] invalid event")
@@ -63,8 +64,51 @@ function GameController.trigger(eventId, eventType)
     GameController.emit(Event.new(eventId, eventType))
 end
 
+---------- SPAWN ----------
+-- Resolves the correct player start position in this priority order:
+-- 1. Door target spawn (coming from another map through a door)
+-- 2. Last saved player position (returning from inventory, dialogue, etc.)
+-- 3. Map spawn point
+-- 4. Fallback (0, 0)
+function GameController.resolveStartPosition(worldData, spawnPoint)
+    if not currentGame then
+        return (spawnPoint and spawnPoint.x) or 0,
+               (spawnPoint and spawnPoint.y) or 0
+    end
 
--- DOORS
+    -- Priority 1: door target
+    local targetId = currentGame.doorTargetId
+    if targetId then
+        for _, door in ipairs(worldData.doors or {}) do
+            if door.id == targetId and door.x and door.y then
+                print("[GameController] Start from door:", targetId)
+                currentGame.doorTargetId = nil
+                return door.x, door.y
+            end
+        end
+        print("[GameController] Door target not found:", targetId)
+        currentGame.doorTargetId = nil
+    end
+
+    -- Priority 2: last saved position
+    local pos = currentGame:getPlayerPosition()
+    if pos and pos.x and pos.y then
+        print("[GameController] Start from last position:", pos.x, pos.y)
+        return pos.x, pos.y
+    end
+
+    -- Priority 3: map spawn
+    if spawnPoint and spawnPoint.x and spawnPoint.y then
+        print("[GameController] Start from spawn point:", spawnPoint.x, spawnPoint.y)
+        return spawnPoint.x, spawnPoint.y
+    end
+
+    -- Priority 4: fallback
+    print("[GameController] Start from fallback (0, 0)")
+    return 0, 0
+end
+
+---------- DOORS ----------
 function GameController.setDoorTarget(doorId)
     if not currentGame then return end
     currentGame.doorTargetId = doorId
@@ -72,23 +116,4 @@ function GameController.setDoorTarget(doorId)
     print("[GameController] Door target set:", doorId)
 end
 
-function GameController.resolveDoorSpawn(worldData)
-    if not currentGame then return nil end
-
-    local targetId = currentGame.doorTargetId
-    if not targetId then return nil end
-
-    for _, door in ipairs(worldData.doors or {}) do
-        if door.id == targetId and door.x and door.y then
-            print("[GameController] Spawn from door:", targetId)
-
-            currentGame.doorTargetId = nil -- clean doorTargetId
-
-            return { x = door.x, y = door.y }
-        end
-    end
-
-    print("[GameController] Door target not found:", targetId)
-    return nil
-end
 return GameController

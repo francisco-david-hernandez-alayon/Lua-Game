@@ -3,23 +3,24 @@
 -- A choice the player can make at a dialogue node.
 -- Selecting it moves the dialogue to nextNodeId.
 -- If no options exist on a node, dialogue auto-advances to nextNodeId.
+-- eventOnAdvance: event emitted when this option is chosen
 
 local PlayerDialogueOption = {}
 PlayerDialogueOption.__index = PlayerDialogueOption
 
-function PlayerDialogueOption.new(textKey, nextNodeId)
+function PlayerDialogueOption.new(textKey, nextNodeId, eventOnAdvance)
+    assert(eventOnAdvance == nil or type(eventOnAdvance) == "string",
+        "eventOnAdvance must be a string or nil")
     return setmetatable({
-        textKey    = textKey,    -- localization key for display text
-        nextNodeId = nextNodeId, -- node to jump to when chosen
-        active     = true,
+        textKey        = textKey,
+        nextNodeId     = nextNodeId,
+        active         = true,
+        eventOnAdvance = eventOnAdvance or nil, 
     }, PlayerDialogueOption)
 end
 
 function PlayerDialogueOption:activate()   self.active = true  end
 function PlayerDialogueOption:deactivate() self.active = false end
-
-function PlayerDialogueOption:getText(L)
-    return L.get(self.textKey)
-end
+function PlayerDialogueOption:getText(L)   return L.get(self.textKey) end
 
 return PlayerDialogueOption

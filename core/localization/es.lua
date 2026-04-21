@@ -59,4 +59,18 @@ return {
     inv_back          = "Volver",
     inventory_items_full     = "El inventario esta lleno.",
     inventory_languages_full = "No hay mas espacio para lenguajes.",
+
+    -- BATTLE
+    battle_attack        = "Atacar",
+    battle_swap          = "Cambiar Lenguaje",
+    battle_back          = "Volver",
+    battle_you           = "Tu",
+    battle_win           = "Has ganado!",
+    battle_lose          = "Has perdido!",
+    battle_remaining     = "Lenguajes restantes",
+    battle_exit          = "Continuar",
+    battle_pick_language = "Elige un lenguaje!",
+    battle_menu_action   = "Que hards?",
+    battle_menu_attack   = "Elige un ataque:",
+    battle_menu_swap     = "Elige un lenguaje:",
 }

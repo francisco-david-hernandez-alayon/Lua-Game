@@ -1,5 +1,5 @@
 -- states/game/npc_interaction.lua
-
+local GameController = require("core.game_controller")
 local L = require("core.localization.localization")
 
 local NpcInteraction = {}
@@ -32,6 +32,17 @@ local isInitialDlg   = false
 
 local BOX_PAD = 16
 local BOX_H   = 160
+
+
+
+
+-- helper: emit event if present
+local function emitIfEvent(eventOnAdvance)
+    if eventOnAdvance then
+        GameController.trigger(eventOnAdvance, "test")  -- type hardcoded for now, can be extended
+    end
+end
+
 
 local function startDialogue(dialogueOption, isInitial)
     inDialogue     = true
@@ -79,21 +90,23 @@ function NpcInteraction.keypressed(key)
 
         elseif key == "return" or key == "e" then
             if not node:isPlayerTurn() then
+                -- Emit node event before advancing
+                emitIfEvent(node.eventOnAdvance)
                 activeDialogue:advance()
                 if activeDialogue:isFinished() then
                     activeDialogue:reset()
                     inDialogue = false
                     selected   = 1
-                    -- Initial dialogue finished: go to menu or exit
                     if isInitialDlg then
                         isInitialDlg = false
-                        if #options == 0 then
-                            exitToReturn()
-                        end
-                        -- else fall through to option menu
+                        if #options == 0 then exitToReturn() end
                     end
                 end
             else
+                local activeOpts = node:getActiveOptions()
+                local chosen     = activeOpts[selected]
+                -- Emit option event before jumping
+                if chosen then emitIfEvent(chosen.eventOnAdvance) end
                 activeDialogue:choose(selected)
                 selected = 1
                 if activeDialogue:isFinished() then

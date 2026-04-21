@@ -17,6 +17,7 @@ StatesRegistry.states = {
 
     -- GAME
     game = StatesGamePath .. ".game",
+    battle = StatesGamePath .. ".battle",
     npc_interaction = StatesGamePath .. ".npc_interaction",
     inventory_state = StatesGamePath .. ".inventory_state",
     

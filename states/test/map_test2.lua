@@ -33,23 +33,16 @@ function MapTest2.enter(sm, L)
     }
 
     -- LOAD WORLD
-    MapTest2.map, MapTest2.world, MapTest2.spawn, MapTest2.worldData = MapLoader.load("assets/maps/TestMap2.lua", npcs, moving_npcs, objects, doors)
+    MapTest2.map, MapTest2.world, MapTest2.spawn, MapTest2.worldData = MapLoader.load("assets/maps/TestMap.lua", npcs, moving_npcs, objects, doors)
 
-    -- Restore player position from target door or Last player position or Map Spawn
-    local game = GameController.getGame()
-    local targetDoorPosition = GameController.resolveDoorSpawn(MapTest2.worldData)
-    local lastPlayerPosition     = game and game:getPlayerPosition() or nil
-    local startX = (targetDoorPosition and targetDoorPosition.x) or (lastPlayerPosition and lastPlayerPosition.x) or (MapTest2.spawn and MapTest2.spawn.x) or 64
-    local startY = (targetDoorPosition and targetDoorPosition.y) or (lastPlayerPosition and lastPlayerPosition.y) or (MapTest2.spawn and MapTest2.spawn.y) or 64
-
+    -- Get player spawn
+    local startX, startY = GameController.resolveStartPosition(MapTest2.worldData, MapTest2.spawn)
     MapTest2.player = PlayerController.new(MapTest2.world, { x = startX, y = startY })
     MapTest2.cam    = Camera.new(5)
 
-    -- After resolvePositions and after spawn is known
-    if doors then
-        for _, door in ipairs(doors) do
-            door:checkSpawnProximity(startX, startY)
-        end
+    -- Check doors proximity To Player
+    for _, door in ipairs(MapTest2.worldData.doors) do
+        door:checkSpawnProximity(startX, startY)
     end
 end
 

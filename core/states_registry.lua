@@ -16,8 +16,9 @@ StatesRegistry.states = {
     map_test2 = StatesTestPath .. ".map_test2",
 
     -- GAME
-    npc_interaction = StatesGamePath .. ".npc_interaction",
     game = StatesGamePath .. ".game",
+    npc_interaction = StatesGamePath .. ".npc_interaction",
+    inventory_state = StatesGamePath .. ".inventory_state",
     
 }
 
@@ -28,6 +29,7 @@ function StatesRegistry.getState(name)
     end
 
     print("[OK] switch to " .. path)
+    print("\n\n")
     return require(path)
 end
 

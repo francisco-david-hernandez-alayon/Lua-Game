@@ -1,14 +1,8 @@
 -- core/npc/npc.lua
 --
 -- Base NPC class. Holds position, sprite, and a list of NpcOptions.
---
--- INTERACTION RULES:
---   1. If the NPC has an active SimpleTalkOption → trigger it directly, show bubble above NPC.
---   2. If no SimpleTalkOption → show menu of all active options.
---   3. If only one active option → trigger it directly, skip menu.
---
--- Use Distance.inRange() to check if player is close enough before calling interact().
 
+-- core/npc/npc.lua
 local L        = require("core.localization.localization")
 local Distance = require("utils.distance")
 
@@ -17,21 +11,80 @@ Npc.__index = Npc
 
 local INTERACT_RANGE = 32
 
-function Npc.new(id, sprite, options)
+function Npc.new(id, sprite, options, initialDialogue)
     return setmetatable({
-        id        = id,
-        sprite    = love.graphics.newImage(sprite),
-        options   = options or {},
-        x         = nil,
-        y         = nil,
-        talkTimer = 0,
-        talkText  = nil,
-        inRange   = false,
-        
+        id              = id,
+        sprite          = love.graphics.newImage(sprite),
+        options         = options or {},
+        initialDialogue = initialDialogue or nil,  -- played before option menu
+        x               = nil,
+        y               = nil,
+        talkTimer       = 0,
+        talkText        = nil,
+        inRange         = false,
     }, Npc)
 end
 
--- Returns active SimpleTalkOption if present — takes full priority
+-- Set or replace the initial dialogue
+function Npc:setInitialDialogue(dialogue)
+    self.initialDialogue = dialogue
+end
+
+-- Clear initial dialogue
+function Npc:clearInitialDialogue()
+    self.initialDialogue = nil
+end
+
+-- Activate an option by id
+function Npc:activateOption(optionId)
+    for _, npcOpt in ipairs(self.options) do
+        if npcOpt.id == optionId then
+            npcOpt:activate()
+            return
+        end
+    end
+    print("[WARN] Npc:activateOption: option not found: " .. optionId)
+end
+
+-- Deactivate an option by id
+function Npc:deactivateOption(optionId)
+    for _, npcOpt in ipairs(self.options) do
+        if npcOpt.id == optionId then
+            npcOpt:deactivate()
+            return
+        end
+    end
+    print("[WARN] Npc:deactivateOption: option not found: " .. optionId)
+end
+
+-- Activate a player dialogue option inside a specific dialogue option by id
+function Npc:activatePlayerOption(optionId, nodeId, playerOptIndex)
+    for _, npcOpt in ipairs(self.options) do
+        if npcOpt.id == optionId and npcOpt.option.dialogue then
+            local node = npcOpt.option.dialogue.nodes[nodeId]
+            if node and node.playerOptions[playerOptIndex] then
+                node.playerOptions[playerOptIndex]:activate()
+                return
+            end
+        end
+    end
+    print("[WARN] Npc:activatePlayerOption: not found")
+end
+
+-- Deactivate a player dialogue option
+function Npc:deactivatePlayerOption(optionId, nodeId, playerOptIndex)
+    for _, npcOpt in ipairs(self.options) do
+        if npcOpt.id == optionId and npcOpt.option.dialogue then
+            local node = npcOpt.option.dialogue.nodes[nodeId]
+            if node and node.playerOptions[playerOptIndex] then
+                node.playerOptions[playerOptIndex]:deactivate()
+                return
+            end
+        end
+    end
+    print("[WARN] Npc:deactivatePlayerOption: not found")
+end
+
 function Npc:getSimpleTalkOption()
     for _, npcOpt in ipairs(self.options) do
         if npcOpt.active and npcOpt.option.type == "simple_talk" then
@@ -41,24 +94,19 @@ function Npc:getSimpleTalkOption()
     return nil
 end
 
--- Returns all active options
 function Npc:getActiveOptions()
     local active = {}
     for _, npcOpt in ipairs(self.options) do
-        if npcOpt.active then
-            table.insert(active, npcOpt)
-        end
+        if npcOpt.active then table.insert(active, npcOpt) end
     end
     return active
 end
 
--- Returns true if player is within interaction range
 function Npc:playerInRange(px, py)
     if not self.x then return false end
     return Distance.inRange(px, py, self.x, self.y, INTERACT_RANGE)
 end
 
--- Main interact entry point
 function Npc:interact(px, py)
     if not self:playerInRange(px, py) then return nil end
 
@@ -69,22 +117,18 @@ function Npc:interact(px, py)
 
     local active = self:getActiveOptions()
 
-    if #active == 1 then
-        local opt = active[1].option
-        if opt.type == "dialogue" then return { type = "dialogue", option = opt } end
-        if opt.type == "trade"    then return { type = "trade",    shop   = opt } end
-        if opt.type == "combat"   then return { type = "combat",   option = opt } end
+    if #active == 0 and not self.initialDialogue then
+        return nil
     end
 
-    return { type = "menu", options = active }
+    -- Has initial dialogue or options → go to npc_interaction
+    return { type = "interaction" }
 end
 
--- Triggers the simple talk bubble above the NPC for 3 seconds
 function Npc:triggerSimpleTalk(textKey)
     self.talkText  = L.get(textKey)
     self.talkTimer = 3
 end
-
 
 function Npc:update(dt, px, py)
     if self.talkTimer > 0 then
@@ -110,14 +154,12 @@ function Npc:draw(tx, ty, scale)
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(self.sprite, sx, sy, 0, scale, scale, ox, oy)
 
-    -- NPC id label
     love.graphics.setColor(1, 1, 0)
     local textW = font:getWidth(self.id)
     love.graphics.print(self.id, sx - textW / 2, sy - 12 * scale)
 
-    -- Show interact hint when in range
+    -- Interact hint
     if self.inRange then
-        local font  = love.graphics.getFont()
         local hint  = "[E]"
         local hintW = font:getWidth(hint)
         love.graphics.setColor(1, 1, 1)
@@ -126,7 +168,7 @@ function Npc:draw(tx, ty, scale)
         love.graphics.print(hint, sx - hintW/2, sy - 26 * scale)
     end
 
-    -- Simple talk bubble above NPC
+    -- Simple talk bubble
     if self.talkText then
         local bw = font:getWidth(self.talkText) + 16
         local bx = sx - bw / 2

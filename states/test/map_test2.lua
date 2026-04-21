@@ -6,8 +6,10 @@ local Npc              = require("core.npc.npc")
 local MovingNpc        = require("core.world_elements.moving_npc")
 local Object           = require("core.world_elements.object")
 local Door             = require("core.world_elements.door")
+local GameController = require("core.game_controller")
 
 local MapTest2 = {}
+local STATENAME = "map_test2"
 local TEST = "assets/sprites/test/"
 
 function MapTest2.enter(sm, L)
@@ -26,31 +28,49 @@ function MapTest2.enter(sm, L)
         Object.new("item_2", TEST .. "item_test.png"),
     }
     local doors = {
-        Door.new("door_1", TEST .. "door_1.png", "map_test", true),
-        Door.new("door_2", TEST .. "door_1.png", "map_test", true),
+        Door.new("door_1", TEST .. "door_1.png", "door_1", "map_test", true),
+        Door.new("door_2", TEST .. "door_1.png", "door_1", "map_test", true),
     }
 
-    MapTest2.map, MapTest2.world, MapTest2.spawn, MapTest2.worldData =
-    MapLoader.load("assets/maps/TestMap2.lua", npcs, moving_npcs, objects, doors)
-    MapTest2.player = PlayerController.new(MapTest2.world, MapTest2.spawn)
+    -- LOAD WORLD
+    MapTest2.map, MapTest2.world, MapTest2.spawn, MapTest2.worldData = MapLoader.load("assets/maps/TestMap2.lua", npcs, moving_npcs, objects, doors)
+
+    -- Restore player position from target door or Last player position or Map Spawn
+    local game = GameController.getGame()
+    local targetDoorPosition = GameController.resolveDoorSpawn(MapTest2.worldData)
+    local lastPlayerPosition     = game and game:getPlayerPosition() or nil
+    local startX = (targetDoorPosition and targetDoorPosition.x) or (lastPlayerPosition and lastPlayerPosition.x) or (MapTest2.spawn and MapTest2.spawn.x) or 64
+    local startY = (targetDoorPosition and targetDoorPosition.y) or (lastPlayerPosition and lastPlayerPosition.y) or (MapTest2.spawn and MapTest2.spawn.y) or 64
+
+    MapTest2.player = PlayerController.new(MapTest2.world, { x = startX, y = startY })
     MapTest2.cam    = Camera.new(5)
-end
 
-
-
-function MapTest2.update(dt)
-    MapTest2.world:update(dt)
-    MapTest2.map:update(dt)
-    MapTest2.player:update(dt, UIController.isMenuOpen())
-
-    if not UIController.isMenuOpen() then
-        local px, py = MapTest2.player:getPosition()
-        for _, door in ipairs(MapTest2.worldData.doors) do
-            door:update(px, py, MapTest2.sm)
+    -- After resolvePositions and after spawn is known
+    if doors then
+        for _, door in ipairs(doors) do
+            door:checkSpawnProximity(startX, startY)
         end
     end
 end
 
+
+function MapTest2.update(dt)
+    -- Update data
+    MapTest2.world:update(dt)
+    MapTest2.map:update(dt)
+    MapTest2.player:update(dt, UIController.isMenuOpen())
+    GameController.update(STATENAME, MapTest2.player)
+
+    if not UIController.isMenuOpen() then
+        local px, py = MapTest2.player:getPosition()
+        for _, door in ipairs(MapTest2.worldData.doors) do
+            door:update(px, py, MapTest2.sm, GameController)
+        end
+        for _, npc in ipairs(MapTest2.worldData.npcs) do
+            npc:update(dt, px, py)
+        end
+    end
+end
 
 
 function MapTest2.keypressed(key)
@@ -65,17 +85,11 @@ function MapTest2.keypressed(key)
     end
 end
 
+
 function MapTest2.draw()
     local px, py = MapTest2.player:getPosition()
     Camera.update(MapTest2.cam, px, py)
-
-    UIController.draw(
-        MapTest2.map,
-        MapTest2.worldData,
-        MapTest2.player,
-        MapTest2.cam
-    )
-
+    UIController.draw(MapTest2.map, MapTest2.worldData, MapTest2.player, MapTest2.cam)
 
     -- Debug
     if MapTest2.debug then

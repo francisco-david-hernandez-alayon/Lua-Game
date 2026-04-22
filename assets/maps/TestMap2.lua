@@ -1033,7 +1033,7 @@ return {
           objects = {
             {
               id = 5,
-              name = "npc_1",
+              name = "npc_1_map_test2",
               type = "",
               shape = "point",
               x = 2192,
@@ -1047,7 +1047,7 @@ return {
             },
             {
               id = 6,
-              name = "npc_2",
+              name = "npc_2_map_test2",
               type = "",
               shape = "point",
               x = 2194.33,
@@ -1077,7 +1077,7 @@ return {
           objects = {
             {
               id = 3,
-              name = "door_1",
+              name = "door_1_map_test2",
               type = "",
               shape = "point",
               x = 2323.33,
@@ -1091,7 +1091,7 @@ return {
             },
             {
               id = 4,
-              name = "door_2",
+              name = "door_2_map_test2",
               type = "",
               shape = "point",
               x = 2319,

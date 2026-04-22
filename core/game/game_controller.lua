@@ -86,7 +86,6 @@ function GameController.resolveStartPosition(worldData, spawnPoint)
                 return door.x, door.y
             end
         end
-        print("[GameController] Door target not found:", targetId)
         currentGame.doorTargetId = nil
     end
 
@@ -115,5 +114,62 @@ function GameController.setDoorTarget(doorId)
 
     print("[GameController] Door target set:", doorId)
 end
+
+
+
+---------- WORLD DATA ----------
+function GameController.getWorldDataForState(state)
+    assert(currentGame, "[GameController] no active game session")
+    local npcs, objects, doors = {}, {}, {}
+    for _, v in ipairs(currentGame.worldData.npcs)    do
+        if v.mapState == state then table.insert(npcs,    v) end
+    end
+    for _, v in ipairs(currentGame.worldData.objects) do
+        if v.mapState == state then table.insert(objects, v) end
+    end
+    for _, v in ipairs(currentGame.worldData.doors)   do
+        if v.mapState == state then table.insert(doors,   v) end
+    end
+
+    -- DEBUG
+    print(
+        "[getWorldDataForState][" .. state .. "] " ..
+        "NPCs: " .. #npcs ..
+        " | Objects: " .. #objects ..
+        " | Doors: " .. #doors
+    )
+
+    return { npcs = npcs, objects = objects, doors = doors }
+end
+
+function GameController.getNpc(id)
+    if not currentGame then return nil end
+    for _, v in ipairs(currentGame.worldData.npcs) do
+        if v.npc.id == id then return v end
+    end
+    print("[WARN] GameController.getNpc: not found: " .. id)
+    return nil
+end
+
+function GameController.getObject(id)
+    if not currentGame then return nil end
+    for _, v in ipairs(currentGame.worldData.objects) do
+        if v.id == id then return v end
+    end
+    print("[WARN] GameController.getObject: not found: " .. id)
+    return nil
+end
+
+function GameController.getDoor(id)
+    if not currentGame then return nil end
+    for _, v in ipairs(currentGame.worldData.doors) do
+        if v.id == id then return v end
+    end
+    print("[WARN] GameController.getDoor: not found: " .. id)
+    return nil
+end
+
+
+
 
 return GameController

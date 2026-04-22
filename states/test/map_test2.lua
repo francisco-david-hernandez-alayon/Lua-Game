@@ -13,47 +13,22 @@ local STATENAME = "map_test2"
 local TEST = "assets/sprites/test/"
 
 
--- NPC: simple talk
-local SimpleTalkOption  = require("core.npc.options.simple_talk_option")
-local NpcOption        = require("core.npc.npc_option")
-local function makeSimpleTalkTestNpc(id, spritePath)
-    local simpleTalk = SimpleTalkOption.new({"SimpleTalkOptionTEST1"}, "ordered")
-    local npc = Npc.new(id, spritePath, {
-        NpcOption.new("talk", "talk", simpleTalk),
-    }, nil, true)
-    
-    return WorldNpc.new(npc, STATENAME);
-end
-
 function MapTest2.enter(sm, L)
     MapTest2.sm    = sm
     MapTest2.debug = false
 
+    local worldData = GameController.getWorldDataForState(STATENAME)
 
-    local npcs = {
-        makeSimpleTalkTestNpc("npc_1",  TEST .. "PlayerTest.png"),
-        makeSimpleTalkTestNpc("npc_2", TEST .. "PlayerTest.png"),
-    }
+    MapTest2.map, MapTest2.world, MapTest2.spawn, MapTest2.worldData =
+        MapLoader.load("assets/maps/TestMap2.lua",
+            worldData.npcs,
+            worldData.objects,
+            worldData.doors)
 
-    local objects = {
-        WorldObject.new("item_1", TEST .. "item_test.png", STATENAME),
-        WorldObject.new("item_2", TEST .. "item_test.png", STATENAME),
-    }
-    local doors = {
-        WorldDoor.new("door_1", TEST .. "door_1.png", "door_1", "map_test", STATENAME, true),
-        WorldDoor.new("door_1", TEST .. "door_1.png", "door_1", "map_test", STATENAME, true),
-    }
-
-
-    -- LOAD WORLD
-    MapTest2.map, MapTest2.world, MapTest2.spawn, MapTest2.worldData = MapLoader.load("assets/maps/TestMap2.lua", npcs, objects, doors)
-
-    -- Get player spawn
     local startX, startY = GameController.resolveStartPosition(MapTest2.worldData, MapTest2.spawn)
     MapTest2.player = PlayerController.new(MapTest2.world, { x = startX, y = startY })
     MapTest2.cam    = Camera.new(5)
 
-    -- Check doors proximity To Player
     for _, door in ipairs(MapTest2.worldData.doors) do
         door:checkSpawnProximity(startX, startY)
     end
@@ -102,6 +77,16 @@ function MapTest2.keypressed(key)
             MapTest2.sm.switch("main_menu")
         elseif key == "f1" then
             MapTest2.debug = not MapTest2.debug
+        end
+    end
+
+    -- SAVE TESTING
+    if key == "g" then
+        local SaveSystem = require("core.save_system")
+        local game = GameController.getGame()
+        if game then
+            SaveSystem.save(game.slot, game)
+            print("[MapTest] Game saved to slot " .. game.slot)
         end
     end
 end

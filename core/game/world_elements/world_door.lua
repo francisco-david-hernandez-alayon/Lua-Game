@@ -3,11 +3,12 @@
 -- A door world element. Extends WorldElement.
 -- ATTRIBUTES:
 --   id          → unique door identifier string
+--   mapState    → state key where this door lives
+--   open        → whether the door is passable
+--   blocked     → true when player spawned too close (prevents instant retrigger)
 --   sprite      → love2d image
 --   targetId    → id of the door to spawn at in the target state
 --   targetState → state key to switch to when triggered
---   open        → whether the door is passable
---   blocked     → true when player spawned too close (prevents instant retrigger)
 
 local WorldElement = require("core.game.world_elements.world_element")
 local Distance     = require("utils.distance")
@@ -19,11 +20,13 @@ setmetatable(WorldDoor, { __index = WorldElement })
 local TRIGGER_DIST = 16
 local SAFE_DIST    = 48
 
-function WorldDoor.new(id, sprite, targetId, targetState, mapState, open)
-    assert(type(id)          == "string", "id must be a string")
-    assert(type(targetId)    == "string", "targetId must be a string")
-    assert(type(targetState) == "string", "targetState must be a string")
-    assert(type(mapState)    == "string", "mapState must be a string")
+function WorldDoor.new(id, mapState, open, sprite, targetId, targetState)
+    assert(type(id)          == "string",  "id must be a string")
+    assert(type(mapState)    == "string",  "mapState must be a string")
+    assert(type(open)        == "boolean", "open must be a boolean")
+    assert(type(sprite)      == "string",  "sprite must be a path string")
+    assert(type(targetId)    == "string",  "targetId must be a string")
+    assert(type(targetState) == "string",  "targetState must be a string")
 
     local self = WorldElement.new(mapState)
     setmetatable(self, WorldDoor)
@@ -32,7 +35,7 @@ function WorldDoor.new(id, sprite, targetId, targetState, mapState, open)
     self.sprite      = love.graphics.newImage(sprite)
     self.targetId    = targetId
     self.targetState = targetState
-    self.open        = open or false
+    self.open        = open
     self.blocked     = false
 
     return self

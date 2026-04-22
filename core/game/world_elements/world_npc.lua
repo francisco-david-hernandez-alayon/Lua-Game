@@ -26,8 +26,6 @@ function WorldNpc.new(npc, mapState, bounds)
     assert(type(mapState) == "string",               "mapState must be a string")
     assert(bounds == nil or type(bounds) == "table", "bounds must be a table or nil")
 
-    print("-----WORLD NPC, NPC ENABLED: " .. tostring(npc.interactEnabled))
-
     local self = WorldElement.new(mapState)
     setmetatable(self, WorldNpc)
 

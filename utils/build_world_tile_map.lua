@@ -4,7 +4,6 @@
 -- ─────────────────────────────────────────────────────────────────
 -- Object group layers (inside "world" folder in Tiled):
 --   "npcs"         Points, name = npc identifier (e.g. "npc_1")
---   "moving_npcs"  Rectangles, name = npc identifier (e.g. "moving_npc_1")
 --   "objects"      Points, name = object identifier (e.g. "item_1")
 --   "doors"        Points, name = target state (e.g. "door_1")
 --
@@ -117,30 +116,19 @@ local function buildNpcs(layer)
     end
     for _, obj in pairs(layer.objects) do
         if obj.name and obj.name ~= "" then
-            table.insert(npcs, { id = obj.name, x = obj.x, y = obj.y })
-        end
-    end
-    print("[OK] npcs loaded: " .. #npcs)
-    return npcs
-end
-
-local function buildMovingNpcs(layer)
-    local npcs = {}
-    if not layer then
-        print("[WARN] build_world_tile_map: layer 'moving_npcs' not found")
-        return npcs
-    end
-    for _, obj in pairs(layer.objects) do
-        if obj.name and obj.name ~= "" then
+            local bounds = nil
+            if obj.shape == "rectangle" and obj.width > 0 and obj.height > 0 then
+                bounds = { x = obj.x, y = obj.y, w = obj.width, h = obj.height }
+            end
             table.insert(npcs, {
                 id     = obj.name,
                 x      = obj.x,
                 y      = obj.y,
-                bounds = { x = obj.x, y = obj.y, w = obj.width, h = obj.height }
+                bounds = bounds,
             })
         end
     end
-    print("[OK] moving_npcs loaded: " .. #npcs)
+    print("[OK] npcs loaded: " .. #npcs)
     return npcs
 end
 
@@ -195,7 +183,6 @@ end
     print("[INFO] total colliders: " .. tileCount + objectCount)
 
     local npcsLayer       = findLayer(map, "npcs")
-    local movingNpcsLayer = findLayer(map, "moving_npcs")
     local objectsLayer    = findLayer(map, "objects")
     local doorsLayer      = findLayer(map, "doors")
 
@@ -203,7 +190,6 @@ end
 
     return {
         npcs        = buildNpcs(npcsLayer),
-        moving_npcs = buildMovingNpcs(movingNpcsLayer),
         objects     = buildObjects(objectsLayer),
         doors       = buildDoors(doorsLayer),
     }

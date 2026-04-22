@@ -9,7 +9,7 @@ function GameState.enter(sm, L, game)
 
     -- fallback if the game is not passed 
     if not GameState.game then
-        Game = require("core.game")
+        Game = require("core.game.game")
         GameState.game = Game.new({
             name = "DEBUG PLAYER"
         })

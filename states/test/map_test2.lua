@@ -3,14 +3,27 @@ local PlayerController = require("core.player_controller")
 local Camera           = require("core.camera")
 local UIController     = require("ui.ui_game_controller")
 local Npc              = require("core.npc.npc")
-local MovingNpc        = require("core.world_elements.moving_npc")
-local Object           = require("core.world_elements.object")
-local Door             = require("core.world_elements.door")
-local GameController = require("core.game_controller")
+local WorldNpc    = require("core.game.world_elements.world_npc")
+local WorldObject = require("core.game.world_elements.world_object")
+local WorldDoor   = require("core.game.world_elements.world_door")
+local GameController = require("core.game.game_controller")
 
 local MapTest2 = {}
 local STATENAME = "map_test2"
 local TEST = "assets/sprites/test/"
+
+
+-- NPC: simple talk
+local SimpleTalkOption  = require("core.npc.options.simple_talk_option")
+local NpcOption        = require("core.npc.npc_option")
+local function makeSimpleTalkTestNpc(id, spritePath)
+    local simpleTalk = SimpleTalkOption.new({"SimpleTalkOptionTEST1"}, "ordered")
+    local npc = Npc.new(id, spritePath, {
+        NpcOption.new("talk", "talk", simpleTalk),
+    }, nil, true)
+    
+    return WorldNpc.new(npc, STATENAME);
+end
 
 function MapTest2.enter(sm, L)
     MapTest2.sm    = sm
@@ -18,24 +31,22 @@ function MapTest2.enter(sm, L)
 
 
     local npcs = {
-        Npc.new("npc_1",  TEST .. "PlayerTest.png"),
-        Npc.new("npc_2",  TEST .. "PlayerTest.png"),
+        makeSimpleTalkTestNpc("npc_1",  TEST .. "PlayerTest.png"),
+        makeSimpleTalkTestNpc("npc_2", TEST .. "PlayerTest.png"),
     }
-    local moving_npcs = {
-        -- empty
-    }
+
     local objects = {
-        Object.new("item_1", TEST .. "item_test.png"),
-        Object.new("item_2", TEST .. "item_test.png"),
+        WorldObject.new("item_1", TEST .. "item_test.png", STATENAME),
+        WorldObject.new("item_2", TEST .. "item_test.png", STATENAME),
     }
     local doors = {
-        Door.new("door_1", TEST .. "door_1.png", "door_1", "map_test", true),
-        Door.new("door_2", TEST .. "door_1.png", "door_1", "map_test", true),
+        WorldDoor.new("door_1", TEST .. "door_1.png", "door_1", "map_test", STATENAME, true),
+        WorldDoor.new("door_1", TEST .. "door_1.png", "door_1", "map_test", STATENAME, true),
     }
 
 
     -- LOAD WORLD
-    MapTest2.map, MapTest2.world, MapTest2.spawn, MapTest2.worldData = MapLoader.load("assets/maps/TestMap2.lua", npcs, moving_npcs, objects, doors)
+    MapTest2.map, MapTest2.world, MapTest2.spawn, MapTest2.worldData = MapLoader.load("assets/maps/TestMap2.lua", npcs, objects, doors)
 
     -- Get player spawn
     local startX, startY = GameController.resolveStartPosition(MapTest2.worldData, MapTest2.spawn)
@@ -70,6 +81,21 @@ end
 
 function MapTest2.keypressed(key)
     UIController.keypressed(key, MapTest2.sm)
+
+    if key == "e" then
+        local px, py = MapTest2.player:getPosition()
+        for _, worldNpc in ipairs(MapTest2.worldData.npcs) do
+            local result = worldNpc:interact(px, py)
+            if result then
+                if result.type == "simple_talk" then
+                    worldNpc:triggerSimpleTalk(result.textKey)
+                else
+                    MapTest2.sm.switch("npc_interaction", worldNpc.npc, "map_test", "test")
+                end
+                break
+            end
+        end
+    end
 
     if not UIController.isMenuOpen() then
         if key == "escape" then

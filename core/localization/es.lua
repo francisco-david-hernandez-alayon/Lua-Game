@@ -14,7 +14,7 @@ return {
     player_speaker           = "Tu",
     leave_chat               = "Salir",
     continue                 = "Continuar",
-    SimpleTalkOptionTEST1    = "...",
+    SimpleTalkOptionTEST1    = "TESTEANDO SIMPLE DIALOG OPTION",
 
     -- Inventory
     test_item_a            = "Llave de Hierro",
@@ -67,7 +67,7 @@ return {
     battle_you           = "Tu",
     battle_win           = "Has ganado!",
     battle_lose          = "Has perdido!",
-    battle_remaining     = "Lenguajes restantes",
+    battle_remaining     = "Lenguajes restantes del vencedor",
     battle_exit          = "Continuar",
     battle_pick_language = "Elige un lenguaje!",
     battle_menu_action   = "Que hards?",

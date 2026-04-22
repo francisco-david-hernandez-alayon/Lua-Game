@@ -1,5 +1,5 @@
 local json = require("libs.json") -- ligthweight json library
-local Game = require("core.game")
+local Game = require("core.game.game")
 
 local SaveSystem = {}
 

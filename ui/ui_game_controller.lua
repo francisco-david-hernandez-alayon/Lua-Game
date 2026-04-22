@@ -78,29 +78,26 @@ function UIController.draw(map, worldData, player, cam)
     -- 1. Draw world map
     map:draw(-tx, -ty, scale)
 
-    -- 2. Draw static NPCs
+    -- 2. Draw NPCs (static and moving unified)
     love.graphics.setColor(1, 1, 1)
-    for _, npc in ipairs(worldData.npcs) do npc:draw(tx, ty, scale) end
+    for _, npc in ipairs(worldData.npcs or {}) do npc:draw(tx, ty, scale) end
 
-    -- 3. Draw moving NPCs
-    for _, npc in ipairs(worldData.moving_npcs) do npc:draw(tx, ty, scale) end
+    -- 3. Draw pickable objects
+    for _, obj in ipairs(worldData.objects or {}) do obj:draw(tx, ty, scale) end
 
-    -- 4. Draw pickable objects
-    for _, obj in ipairs(worldData.objects) do obj:draw(tx, ty, scale) end
+    -- 4. Draw doors
+    for _, door in ipairs(worldData.doors or {}) do door:draw(tx, ty, scale) end
 
-    -- 5. Draw doors
-    for _, door in ipairs(worldData.doors) do door:draw(tx, ty, scale) end
-
-    -- 6. Draw player on top of world
+    -- 5. Draw player on top of world
     player:draw(tx, ty, scale)
 
-    -- 7. HUD: tab hint centered at bottom
+    -- 6. HUD: tab hint centered at bottom
     love.graphics.setColor(1, 1, 1)
     local hint  = menuOpen and "[Tab] Cerrar menu" or "[Tab] Abrir menu"
     local hintW = font:getWidth(hint)
     love.graphics.print(hint, sw / 2 - hintW / 2, sh - 24)
 
-    -- 8. Tab menu panel (bottom right)
+    -- 7. Tab menu panel (bottom right)
     if menuOpen then
         local spriteW = menuSprite:getWidth()  * MENU_SCALE
         local spriteH = menuSprite:getHeight() * MENU_SCALE

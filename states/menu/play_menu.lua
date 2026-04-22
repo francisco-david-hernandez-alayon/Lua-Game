@@ -1,5 +1,5 @@
-local Game = require("core.game")
-local GameController = require("core.game_controller")
+local Game = require("core.game.game")
+local GameController = require("core.game.game_controller")
 local SaveSystem = require("core.save_system")
 local PlayMenu = {}
 

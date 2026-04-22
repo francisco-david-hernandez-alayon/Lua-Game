@@ -1,4 +1,4 @@
-local GameController = require("core.game_controller")
+local GameController = require("core.game.game_controller")
 local SimpleMenuController = require("ui.simple_menu_controller")
 local MainMenu = {}
 

@@ -11,15 +11,17 @@ local S                    = require("core.state_system.states_names")
 local TEST                 = "assets/sprites/test/"
 
 local function makeDialogueTestNpc(id, id2, mapState)
+    local test_events = require("core.event.events_list.test_events")
+
     local initialDialogue = Dialogue.new({
         DialogueNode.new("intro_1", id,  "dialogueTest1_intro_1", "intro_2", {}, nil),
-        DialogueNode.new("intro_2", id2, "dialogueTest1_intro_2", nil,       {}, "test_event_1"),
+        DialogueNode.new("intro_2", id2, "dialogueTest1_intro_2", nil,       {}, test_events.test_event_1),
     })
     local dialogue = Dialogue.new({
         DialogueNode.new("node_1", id,  "dialogueTest1_1", "node_2", {}, nil),
         DialogueNode.new("node_2", id2, "dialogueTest1_2", nil, {
-            PlayerDialogueOption.new("dialoguePlayerTest1_1", "node_3", "test_event_1"),
-            PlayerDialogueOption.new("dialoguePlayerTest1_2", "node_4", "test_event_2"),
+            PlayerDialogueOption.new("dialoguePlayerTest1_1", "node_3", test_events.test_event_1),
+            PlayerDialogueOption.new("dialoguePlayerTest1_2", "node_4", test_events.test_event_2),
         }, nil),
         DialogueNode.new("node_3", id2, "dialogueTest1_3", nil, {}, nil),
         DialogueNode.new("node_4", id,  "dialogueTest1_4", nil, {}, nil),

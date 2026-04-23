@@ -9,8 +9,6 @@ local PlayerDialogueOption = {}
 PlayerDialogueOption.__index = PlayerDialogueOption
 
 function PlayerDialogueOption.new(textKey, nextNodeId, eventOnAdvance)
-    assert(eventOnAdvance == nil or type(eventOnAdvance) == "string",
-        "eventOnAdvance must be a string or nil")
     return setmetatable({
         textKey        = textKey,
         nextNodeId     = nextNodeId,

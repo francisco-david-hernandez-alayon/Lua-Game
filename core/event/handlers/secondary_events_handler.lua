@@ -3,7 +3,7 @@
 -- Handles all events of type "secondary".
 -- Secondary events affect side content (side quests, optional npcs, etc).
 
-local function handle(eventId, game)
+local function handle(eventId, controller)
     if eventId == "secondary_event_1" then
         print("[SECONDARY EVENT] secondary_event_1 triggered")
         -- TODO: do something with game

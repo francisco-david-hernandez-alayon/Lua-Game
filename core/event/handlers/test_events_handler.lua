@@ -2,22 +2,23 @@
 --
 -- Handles test events. Uses GameController for all game mutations.
 
-local GameController = require("core.game.game_controller")
 local test_missions  = require("core.mission.missions_list.test_missions")
 
-local function handle(eventId, game)
+local function handle(eventId, controller)
 
-    -- ── test_event_1: complete first task ─────────────────────────
+    local gameName = controller.getGame().name
+
+    -- test_event_1: complete first task
     if eventId == "test_event_1" then
-        print("[TEST EVENT] test_event_1 triggered for: " .. game.name)
+        print("[TEST EVENT] test_event_1 triggered for: " .. gameName)
         local mission = test_missions.mission_test_1
-        GameController.completeTask(mission.missionId, mission.tasks[1].taskId)
+        controller.completeTask(mission.missionId, mission.tasks[1].taskId)
 
-    -- ── test_event_2: complete second task ────────────────────────
+    -- test_event_2: complete second task 
     elseif eventId == "test_event_2" then
-        print("[TEST EVENT] test_event_2 triggered for: " .. game.name)
+        print("[TEST EVENT] test_event_2 triggered for: " .. gameName)
         local mission = test_missions.mission_test_1
-        GameController.completeTask(mission.missionId, mission.tasks[2].taskId)
+        controller.completeTask(mission.missionId, mission.tasks[2].taskId)
 
     else
         return false

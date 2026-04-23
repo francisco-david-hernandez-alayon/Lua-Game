@@ -1,4 +1,4 @@
--- core/game/game_controller.lua
+-- core/game/controller/game_controller.lua
 --
 -- Central controller for the active game session.
 -- All game systems (inventory, missions, events, world) are accessed through here.
@@ -6,7 +6,7 @@
 -- FLOW:
 --   1. GameController.load(game)            → start session
 --   2. GameController.update(state, player) → save position every frame
---   3. GameController.trigger(id, type)     → emit a game event
+--   3. GameController.emit(event)     → emit a game event
 --   4. GameController.getGame()             → get raw Game instance
 --   5. GameController.unload()              → end session
 
@@ -17,7 +17,7 @@ local MissionController   = require("core.game.controller.mission_controller")
 local GameController = {}
 local currentGame    = nil
 
--- GAME SESSION
+-- SESSION
 local function requireSession()
     assert(currentGame, "[GameController] no active game session")
 end
@@ -41,7 +41,6 @@ end
 
 
 -- UPDATE
--- Call every frame from any map state to persist player position
 function GameController.update(state, player)
     if not currentGame then return end
     local px, py = player:getPosition()
@@ -50,14 +49,16 @@ end
 
 
 -- EVENTS
-function GameController.trigger(eventId, eventType)
-    requireSession()
-    EventController.trigger(eventId, eventType, currentGame)
-end
+-- avoid the problem of circular dependencies in `require` statements
+local handlers = {
+    main      = require("core.event.handlers.main_events_handler"),
+    secondary = require("core.event.handlers.secondary_events_handler"),
+    test      = require("core.event.handlers.test_events_handler"),
+}
 
 function GameController.emit(event)
     requireSession()
-    EventController.emit(event, currentGame)
+    EventController.emit(handlers, event, GameController)
 end
 
 
@@ -116,9 +117,11 @@ end
 
 function GameController.completeTask(missionId, taskId)
     requireSession()
+    -- Pass InventoryController by parameter to avoid circular require in MissionController
     return MissionController.completeTask(
         currentGame.playerMissions,
         currentGame.inventory,
+        InventoryController,
         missionId,
         taskId
     )
@@ -136,7 +139,6 @@ end
 
 
 -- SPAWN
--- Priority: door target → last saved position → map spawn → fallback (0,0)
 function GameController.resolveStartPosition(worldData, spawnPoint)
     if not currentGame then
         return (spawnPoint and spawnPoint.x) or 0,
@@ -170,7 +172,6 @@ function GameController.resolveStartPosition(worldData, spawnPoint)
         return spawnPoint.x, spawnPoint.y
     end
 
-    -- Priority 4: fallback
     print("[GameController] start from fallback (0, 0)")
     return 0, 0
 end
@@ -185,7 +186,6 @@ end
 
 
 -- WORLD DATA
--- Returns npcs, objects and doors filtered by map state
 function GameController.getWorldDataForState(state)
     requireSession()
     local npcs, objects, doors = {}, {}, {}

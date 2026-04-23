@@ -4,28 +4,23 @@
 -- Reward distribution is automated via InventoryController.applyReward.
 -- Used internally by GameController — do not call directly.
 
-local InventoryController = require("core.game.controller.inventory_controller")
-
 local MissionController = {}
 
--- Add missions
+-- Add
 function MissionController.addMission(playerMissions, mission)
     local ok, msg = playerMissions:addMission(mission)
     print("[MissionController] addMission:", mission.missionId, msg)
     return ok, msg
 end
 
--- Complete tasks
--- Completes a task and auto-applies reward if mission is done
-function MissionController.completeTask(playerMissions, inventory, missionId, taskId)
+-- Complete task 
+function MissionController.completeTask(playerMissions, inventory, inventoryController, missionId, taskId)
     local ok, msg, completed = playerMissions:completeTask(missionId, taskId)
     print("[MissionController] completeTask:", taskId, msg)
-
     if completed then
         print("[MissionController] mission completed:", missionId)
-        InventoryController.applyReward(inventory, completed.reward)
+        inventoryController.applyReward(inventory, completed.reward)
     end
-
     return ok, msg, completed
 end
 

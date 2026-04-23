@@ -34,12 +34,10 @@ local BOX_PAD = 16
 local BOX_H   = 160
 
 
-
-
 -- helper: emit event if present
 local function emitIfEvent(eventOnAdvance)
     if eventOnAdvance then
-        GameController.trigger(eventOnAdvance, "test")  -- type hardcoded for now, can be extended
+        GameController.emit(eventOnAdvance) 
     end
 end
 

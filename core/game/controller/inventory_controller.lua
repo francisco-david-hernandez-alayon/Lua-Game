@@ -7,14 +7,14 @@ local InventoryController = {}
 
 -- Bytes
 function InventoryController.earnBytes(inventory, amount)
-    assert(type(amount) == "number" and amount > 0, "amount must be a positive number")
+    assert(type(amount) == "number" and amount > 0, "amount must be positive")
     local ok, msg = inventory:addBytes(amount)
     print("[InventoryController] earnBytes:", amount, msg)
     return ok, msg
 end
 
 function InventoryController.spendBytes(inventory, amount)
-    assert(type(amount) == "number" and amount > 0, "amount must be a positive number")
+    assert(type(amount) == "number" and amount > 0, "amount must be positive")
     local ok, msg = inventory:spendBytes(amount)
     print("[InventoryController] spendBytes:", amount, msg)
     return ok, msg
@@ -52,20 +52,25 @@ function InventoryController.swapLanguageSlots(inventory, slotA, slotB)
     return ok, msg
 end
 
-
--- Rewards
--- Apply a MissionReward to the inventory automatically
+-- Rewards 
+-- Automatically apply a MissionReward — called by MissionController via GameController
 function InventoryController.applyReward(inventory, reward)
     if not reward or not reward:hasReward() then return end
-    if reward.rewardBits     then inventory:addBytes(reward.rewardBits)              end
-    if reward.rewardItems    then
-        for _, item in ipairs(reward.rewardItems) do inventory:addItem(item) end
+    if reward.rewardBits then
+        inventory:addBytes(reward.rewardBits)
+        print("[InventoryController] applyReward bits:", reward.rewardBits)
+    end
+    if reward.rewardItems then
+        for _, item in ipairs(reward.rewardItems) do
+            inventory:addItem(item)
+            print("[InventoryController] applyReward item:", item.nameKey)
+        end
     end
     if reward.rewardLanguage then
         local ProgrammingLanguageSlot = require("core.inventory.programming_language_slot")
         inventory:learnLanguage(ProgrammingLanguageSlot.new(reward.rewardLanguage))
+        print("[InventoryController] applyReward language:", reward.rewardLanguage)
     end
-    print("[InventoryController] applyReward: done")
 end
 
 return InventoryController

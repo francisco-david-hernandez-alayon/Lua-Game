@@ -11,8 +11,6 @@ local DialogueNode = {}
 DialogueNode.__index = DialogueNode
 
 function DialogueNode.new(dialogNodeId, speakerId, textKey, nextNodeId, playerOptions, eventOnAdvance)
-    assert(eventOnAdvance == nil or type(eventOnAdvance) == "string",
-        "eventOnAdvance must be a string or nil")
     return setmetatable({
         dialogNodeId    = dialogNodeId,
         speakerId       = speakerId,

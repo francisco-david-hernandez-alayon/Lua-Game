@@ -81,7 +81,8 @@ function MapTest.keypressed(key)
             MapTest.debug = not MapTest.debug
 
             -- testing gamecontroller
-            GameController.trigger("test_event_1", "test")
+            local test_events = require("core.event.events_list.test_events")
+            GameController.emit(test_events.test_event_1)
 
         end
     end

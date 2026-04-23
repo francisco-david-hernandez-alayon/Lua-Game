@@ -23,6 +23,14 @@ return {
     test_item_b_desc      = "Restores a small amount of health. Stackable.",
     test_mission_item     = "Ancient Scroll",
     test_mission_item_desc = "A scroll containing a forgotten algorithm.",
+
+    --  Mission
+    mission_test_1_name   = "Test Mission",
+    mission_test_1_desc   = "A mission to test the system.",
+    test_task_1_name      = "Test Task 1",
+    test_task_1_desc      = "Complete the first test task.",
+    test_task_2_name      = "Test Task 2",
+    test_task_2_desc      = "Complete the second test task.",
     ---------------------- TESTING -------------------------------
     
 
@@ -48,6 +56,19 @@ return {
     empty_slot = "Empty Slot",
     controls_select = "ENTER = Select",
     controls_delete = "D = Delete",
+    
+    -- MISSIONS
+    missions_title        = "Missions",
+    missions_empty        = "No active missions.",
+    missions_tasks        = "Tasks",
+    missions_navigate     = "Navigate",
+    missions_set_current  = "Set as current",
+    mission_added         = "Mission added.",
+    mission_already_active = "Mission already active.",
+    mission_completed     = "Mission completed!",
+    mission_not_found     = "Mission not found.",
+    mission_current_set   = "Current mission updated.",
+    task_completed        = "Task completed.",
 
     -- INVENTORY
     inv_tab_items     = "Items",
@@ -56,8 +77,18 @@ return {
     inv_empty         = "Nothing here.",
     inv_switch_tab    = "Switch tab",
     inv_back          = "Back",
-    inventory_items_full     = "Your inventory is full.",
-    inventory_languages_full = "No more language slots available.",
+    inventory_bytes_gained           = "Bytes received.",
+    inventory_bytes_spent            = "Bytes spent.",
+    inventory_bytes_insufficient     = "Not enough bytes.",
+    inventory_language_learnt        = "New language captured!",
+    inventory_language_learnt_and_equipped = "Language captured and equipped!",
+    inventory_language_already_learnt = "Language already known.",
+    inventory_language_equipped      = "Language equipped.",
+    inventory_languages_full         = "No more language slots available.",
+    inventory_slots_swapped          = "Slots swapped.",
+    inventory_item_added             = "Item added.",
+    inventory_items_full             = "Inventory is full.",
+    inventory_mission_item_added     = "Mission item obtained.",
 
     -- BATTLE
     battle_attack        = "Attack",

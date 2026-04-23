@@ -10,20 +10,20 @@ local WorldDoor   = require("core.game.world_elements.world_door")
 -- Load all category files
 local sources = {
     npcs = {
-        require("core.game.world_data.npcs.main_npcs"),
-        require("core.game.world_data.npcs.secondary_npcs"),
-        require("core.game.world_data.npcs.other_npcs"),
-        require("core.game.world_data.npcs.test_npcs"),
+        require("core.game.world_data.world_npcs_lists.main_npcs"),
+        require("core.game.world_data.world_npcs_lists.secondary_npcs"),
+        require("core.game.world_data.world_npcs_lists.other_npcs"),
+        require("core.game.world_data.world_npcs_lists.test_npcs"),
     },
     objects = {
-        require("core.game.world_data.objects.main_objects"),
-        require("core.game.world_data.objects.secondary_objects"),
-        require("core.game.world_data.objects.test_objects"),
+        require("core.game.world_data.world_objects_list.main_objects"),
+        require("core.game.world_data.world_objects_list.secondary_objects"),
+        require("core.game.world_data.world_objects_list.test_objects"),
     },
     doors = {
-        require("core.game.world_data.doors.main_doors"),
-        require("core.game.world_data.doors.secondary_doors"),
-        require("core.game.world_data.doors.test_doors"),
+        require("core.game.world_data.world_doors_list.main_doors"),
+        require("core.game.world_data.world_doors_list.secondary_doors"),
+        require("core.game.world_data.world_doors_list.test_doors"),
     },
 }
 

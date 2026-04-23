@@ -19,7 +19,7 @@ local APPS = {
     { name = "app1" },
     { name = "app2" },
     { name = "app3" },
-    { name = "app4" },
+    { name = "missions" },
     { name = "inventory" },
     { name = "menu" },
 }
@@ -56,6 +56,9 @@ function UIController.keypressed(key, sm)
         if app and app.name == "menu" then
             menuOpen = false
             sm.switch("main_menu")
+        elseif app and app.name == "missions" then
+            menuOpen = false
+            sm.switch("list_missions")
         elseif app and app.name == "inventory" then
             menuOpen = false
             sm.switch("inventory_state")

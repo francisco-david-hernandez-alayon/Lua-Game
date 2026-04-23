@@ -2,7 +2,7 @@
 *Author: Francisco David Hernández Alayón*
 
 
-## Gameplay flow
+## Gameplay structure
 ### Create new Game
 ```
 PlayMenu → Game.new({ name, slot, gameState }): Create new Game
@@ -54,6 +54,9 @@ MapTest.enter()
   → door:checkSpawnProximity(startX, startY): Check all the doors in the state to prevent the player from re-entering through the door they came in through
 ```
 
+
+### _lists folders
+Folders ending in '_list' are used to store definitions of the game’s static data, including core content such as missions, NPCs, items, etc. These files act as centralised records that define the basic information and settings for each system, which are subsequently loaded and used throughout the game.
 
 
 ## Execution

@@ -2,6 +2,8 @@
 local PlayerInventory  = require("core.inventory.player_inventory")
 local WorldGameData    = require("core.game.world_data.world_game_data")
 local GameSerializer   = require("utils.game_serializer")
+local PlayerMissions = require("core.mission.player_missions")
+local test_missions  = require("core.mission.missions_list.test_missions")
 
 local Game = {}
 Game.__index = Game
@@ -39,6 +41,15 @@ function Game.new(data)
         self.worldData = WorldGameData.buildWorldData()
     end
 
+    -- Missions
+    if data.playerMissions then
+        self.playerMissions = PlayerMissions.fromTable(data.playerMissions)
+    else
+        self.playerMissions = PlayerMissions.new()
+        -- Add test mission on new game
+        self.playerMissions:addMission(test_missions.mission_test_1)
+    end
+
     return self
 end
 
@@ -64,6 +75,7 @@ function Game:toTable()
         doorTargetId  = self.doorTargetId,
         inventory     = self.inventory:toTable(),
         worldData     = GameSerializer.serializeWorldData(self.worldData),
+        playerMissions = self.playerMissions:toTable(),
     }
 end
 

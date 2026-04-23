@@ -12,8 +12,9 @@ local WorldObject = {}
 WorldObject.__index = WorldObject
 setmetatable(WorldObject, { __index = WorldElement })
 
-function WorldObject.new(id, sprite, mapState)
+function WorldObject.new(id, sprite, item, mapState)
     assert(type(id)       == "string", "id must be a string")
+    assert(item,             "item must be an item or missionItem instance")
     assert(type(mapState) == "string", "mapState must be a string")
 
     local self = WorldElement.new(mapState)
@@ -21,6 +22,7 @@ function WorldObject.new(id, sprite, mapState)
 
     self.id     = id
     self.sprite = love.graphics.newImage(sprite)
+    self.item = item;
     self.picked = false
 
     return self

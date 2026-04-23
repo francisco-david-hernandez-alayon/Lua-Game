@@ -58,7 +58,7 @@ function MainTest.keypressed(key)
 
         elseif choice == "NEW TEST GAME" then
             local testGame = Game.new({
-                name      = "TestPlayer",
+                name      = "TESTING GAME",
                 slot      = TEST_SLOT,
                 gameState = "map_test",
             })

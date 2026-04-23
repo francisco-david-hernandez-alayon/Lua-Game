@@ -1,4 +1,4 @@
-local StateManager = require("core.state_manager")
+local StateManager = require("core.state_system.state_manager")
 
 -- DEV SCREEN MODE
 local DEV = true -- true = windowed half screen, false = fullscreen

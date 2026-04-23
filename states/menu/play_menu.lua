@@ -35,17 +35,18 @@ function PlayMenu.keypressed(key)
         if slot.data then
             -- LOAD
             GameController.load(slot.data)
-            PlayMenu.sm.switch("game", slot.data)
+            PlayMenu.sm.switch("game_summary", slot.data)
         else
             -- NEW GAME
             local newGame = Game.new({
-                name = "Player",
+                name = "Game",
                 slot = PlayMenu.selected,
+                gameState = "map_test"  -- TEMPORAL
             })
 
             SaveSystem.save(slot.slot, newGame)
             GameController.load(newGame)
-            PlayMenu.sm.switch("game", newGame)
+            PlayMenu.sm.switch("game_summary", newGame)
         end
     elseif key == "d" then
         local slot = PlayMenu.slots[PlayMenu.selected]

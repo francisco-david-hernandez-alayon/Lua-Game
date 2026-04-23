@@ -989,7 +989,7 @@ return {
           objects = {
             {
               id = 7,
-              name = "item_1",
+              name = "item_1_map_test2",
               type = "",
               shape = "point",
               x = 2317,
@@ -1003,7 +1003,7 @@ return {
             },
             {
               id = 8,
-              name = "item_2",
+              name = "item_2_map_test2",
               type = "",
               shape = "point",
               x = 6096,

@@ -3,17 +3,17 @@
 -- NPC option that triggers a combat encounter.
 -- preCombatDialogue:  Dialogue shown before battle starts
 -- postCombatDialogue: Dialogue shown after battle ends
--- rewardBits: amount of bits (currency) given to player on victory
+-- rewardBytes: amount of bytes (currency) given to player on victory
 
 local CombatOption = {}
 CombatOption.__index = CombatOption
 
-function CombatOption.new(preCombatDialogue, postCombatDialogue, rewardBits)
+function CombatOption.new(preCombatDialogue, postCombatDialogue, rewardBytes)
     return setmetatable({
         type               = "combat",
         preCombatDialogue  = preCombatDialogue,
         postCombatDialogue = postCombatDialogue,
-        rewardBits         = rewardBits or 0,
+        rewardBytes         = rewardBytes or 0,
         active             = true,
     }, CombatOption)
 end

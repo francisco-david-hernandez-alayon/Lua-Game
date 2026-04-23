@@ -7,12 +7,12 @@
 --   4. GameController.getGame()             → returns current Game (for save system)
 --   5. GameController.unload()              → called when returning to main menu
 
-local Event = require("core.events.event")
+local Event = require("core.event.event")
 
 local handlers = {
-    main      = require("core.events.handlers.main_events_handler"),
-    secondary = require("core.events.handlers.secondary_events_handler"),
-    test      = require("core.events.handlers.test_events_handler"),
+    main      = require("core.event.handlers.main_events_handler"),
+    secondary = require("core.event.handlers.secondary_events_handler"),
+    test      = require("core.event.handlers.test_events_handler"),
 }
 
 local GameController = {}
@@ -34,7 +34,9 @@ function GameController.update(state, player)
     --print("---Save player position in " .. state .. ": (" .. px .. ", " .. py .. ")")
 end
 
----------- EVENTS ----------
+
+
+-- EVENTS
 function GameController.emit(event)
     assert(currentGame, "[GameController] no active game session")
     assert(event and event.eventId and event.eventType, "[GameController] invalid event")
@@ -64,7 +66,71 @@ function GameController.trigger(eventId, eventType)
     GameController.emit(Event.new(eventId, eventType))
 end
 
----------- SPAWN ----------
+
+
+-- INVENTORY
+function GameController.getInventory()
+    assert(currentGame, "[GameController] no active game session")
+    return currentGame.inventory
+end
+
+-- Earn bytes
+function GameController.earnBytes(amount)
+    local _, msg = GameController.getInventory():addBytes(amount)
+    return msg
+end
+
+-- Spend bytes — returns message key (success or insufficient)
+function GameController.spendBytes(amount)
+    local ok, msg = GameController.getInventory():spendBytes(amount)
+    return ok, msg
+end
+
+-- Learn a new programming language
+function GameController.learnLanguage(languageSlot)
+    local ok, msg = GameController.getInventory():learnLanguage(languageSlot)
+    return ok, msg
+end
+
+-- Equip a learnt language to a slot
+function GameController.equipLanguageToSlot(languageId, slotIndex)
+    local ok, msg = GameController.getInventory():equipLanguageToSlot(languageId, slotIndex)
+    return ok, msg
+end
+
+-- Swap two language slots
+function GameController.swapLanguageSlots(slotA, slotB)
+    local ok, msg = GameController.getInventory():swapLanguageSlots(slotA, slotB)
+    return ok, msg
+end
+
+
+-- MISSIONS
+function GameController.addMission(mission)
+    local ok, msg = currentGame.playerMissions:addMission(mission)
+    return ok, msg
+end
+
+function GameController.completeTask(missionId, taskId)
+    local ok, msg, completed = currentGame.playerMissions:completeTask(missionId, taskId)
+    if completed and completed.reward then
+        local reward = completed.reward
+        if reward.rewardBits then currentGame.inventory:addBytes(reward.rewardBits) end
+    end
+    return ok, msg, completed
+end
+
+function GameController.setCurrentMission(missionId)
+    local ok, msg = currentGame.playerMissions:setCurrentMission(missionId)
+    return ok, msg
+end
+
+function GameController.getCurrentMission()
+    return currentGame.playerMissions.currentMission
+end
+
+
+-- SPAWN
 -- Resolves the correct player start position in this priority order:
 -- 1. Door target spawn (coming from another map through a door)
 -- 2. Last saved player position (returning from inventory, dialogue, etc.)
@@ -107,7 +173,7 @@ function GameController.resolveStartPosition(worldData, spawnPoint)
     return 0, 0
 end
 
----------- DOORS ----------
+-- DOORS
 function GameController.setDoorTarget(doorId)
     if not currentGame then return end
     currentGame.doorTargetId = doorId
@@ -117,7 +183,7 @@ end
 
 
 
----------- WORLD DATA ----------
+-- WORLD DATA
 function GameController.getWorldDataForState(state)
     assert(currentGame, "[GameController] no active game session")
     local npcs, objects, doors = {}, {}, {}
@@ -168,8 +234,6 @@ function GameController.getDoor(id)
     print("[WARN] GameController.getDoor: not found: " .. id)
     return nil
 end
-
-
 
 
 return GameController

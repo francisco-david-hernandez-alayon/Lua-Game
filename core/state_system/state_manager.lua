@@ -1,8 +1,8 @@
-local StateManager = {}
-local CurrentState = nil
-local StatesRegistry = require("core.states_registry")
-local L = require("core.localization.localization")  -- Lang
-
+-- core/state_system/state_manager.lua
+local StateManager   = {}
+local CurrentState   = nil
+local StatesRegistry = require("core.state_system.states_registry")
+local L              = require("core.localization.localization")
 
 -- Given a state name it gets states from states_registry
 function StateManager.resolveState(stateName)
@@ -12,7 +12,6 @@ function StateManager.resolveState(stateName)
 
     return stateName
 end
-
 
 -- Switch states
 function StateManager.switch(newState, ...)
@@ -30,7 +29,6 @@ function StateManager.switch(newState, ...)
         CurrentState.enter(StateManager, L, ...)
     end
 end
-
 
 function StateManager.update(dt)
     if CurrentState and CurrentState.update then CurrentState.update(dt) end

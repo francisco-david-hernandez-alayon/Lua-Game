@@ -2,16 +2,11 @@ local MapLoader        = require("core.map_loader")
 local PlayerController = require("core.player_controller")
 local Camera           = require("core.camera")
 local UIController     = require("ui.ui_game_controller")
-local Npc              = require("core.npc.npc")
-local WorldNpc    = require("core.game.world_elements.world_npc")
-local WorldObject = require("core.game.world_elements.world_object")
-local WorldDoor   = require("core.game.world_elements.world_door")
-local NpcOption        = require("core.npc.npc_option")
 local GameController = require("core.game.game_controller")
+local S = require("core.state_system.states_names")
 
 local MapTest = {}
-local STATENAME = "map_test"
-local TEST = "assets/sprites/test/"
+local STATENAME = S.test.map_test
 
 
 function MapTest.enter(sm, L)

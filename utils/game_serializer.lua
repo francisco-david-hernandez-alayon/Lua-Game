@@ -69,6 +69,8 @@ local function deserializeObject(data)
     if not worldObject then return nil end
     worldObject.visible = data.visible
     worldObject.picked  = data.picked
+    worldObject.item = data.item
+
     return worldObject
 end
 

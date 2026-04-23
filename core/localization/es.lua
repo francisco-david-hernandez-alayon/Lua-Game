@@ -23,6 +23,14 @@ return {
     test_item_b_desc       = "Restaura algo de vida. Se puede apilar.",
     test_mission_item      = "Pergamino Antiguo",
     test_mission_item_desc = "Un pergamino con un algoritmo olvidado.",
+
+    -- Missions
+    mission_test_1_name   = "Mision de Prueba",
+    mission_test_1_desc   = "Una mision para probar el sistema.",
+    test_task_1_name      = "Tarea de Prueba 1",
+    test_task_1_desc      = "Completa la primera tarea de prueba.",
+    test_task_2_name      = "Tarea de Prueba 2",
+    test_task_2_desc      = "Completa la segunda tarea de prueba.",
     ---------------------- TESTING -------------------------------
     
     
@@ -49,6 +57,18 @@ return {
     controls_select = "ENTER = Seleccionar",
     controls_delete = "D = Eliminar",
 
+    -- MISSIONS
+    missions_title        = "Misiones",
+    missions_empty        = "No hay misiones activas.",
+    missions_tasks        = "Tareas",
+    missions_navigate     = "Navegar",
+    missions_set_current  = "Establecer como actual",
+    mission_added         = "Mision añadida.",
+    mission_already_active = "Mision ya activa.",
+    mission_completed     = "Mision completada!",
+    mission_not_found     = "Mision no encontrada.",
+    mission_current_set   = "Mision actual actualizada.",
+    task_completed        = "Tarea completada.",
 
     --INVENTORY
     inv_tab_items     = "Objetos",
@@ -57,8 +77,18 @@ return {
     inv_empty         = "Nada aqui.",
     inv_switch_tab    = "Cambiar pestaña",
     inv_back          = "Volver",
-    inventory_items_full     = "El inventario esta lleno.",
-    inventory_languages_full = "No hay mas espacio para lenguajes.",
+    inventory_bytes_gained           = "Bytes recibidos.",
+    inventory_bytes_spent            = "Bytes gastados.",
+    inventory_bytes_insufficient     = "Bytes insuficientes.",
+    inventory_language_learnt        = "Lenguaje capturado!",
+    inventory_language_learnt_and_equipped = "Lenguaje capturado y equipado!",
+    inventory_language_already_learnt = "Lenguaje ya conocido.",
+    inventory_language_equipped      = "Lenguaje equipado.",
+    inventory_languages_full         = "No hay mas espacio para lenguajes.",
+    inventory_slots_swapped          = "Slots intercambiados.",
+    inventory_item_added             = "Objeto añadido.",
+    inventory_items_full             = "El inventario esta lleno.",
+    inventory_mission_item_added     = "Objeto de mision obtenido.",
 
     -- BATTLE
     battle_attack        = "Atacar",

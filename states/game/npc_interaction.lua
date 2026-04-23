@@ -1,5 +1,5 @@
 -- states/game/npc_interaction.lua
-local GameController = require("core.game.game_controller")
+local GameController = require("core.game.controller.game_controller")
 local L = require("core.localization.localization")
 
 local NpcInteraction = {}

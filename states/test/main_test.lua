@@ -1,6 +1,6 @@
 -- states/test/main_test.lua
 local SimpleMenuController    = require("ui.simple_menu_controller")
-local GameController          = require("core.game.game_controller")
+local GameController          = require("core.game.controller.game_controller")
 local Game                    = require("core.game.game")
 local SaveSystem              = require("core.save_system")
 local Item                    = require("core.inventory.item")

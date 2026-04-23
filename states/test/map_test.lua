@@ -2,7 +2,7 @@ local MapLoader        = require("core.map_loader")
 local PlayerController = require("core.player_controller")
 local Camera           = require("core.camera")
 local UIController     = require("ui.ui_game_controller")
-local GameController = require("core.game.game_controller")
+local GameController = require("core.game.controller.game_controller")
 local S = require("core.state_system.states_names")
 
 local MapTest = {}

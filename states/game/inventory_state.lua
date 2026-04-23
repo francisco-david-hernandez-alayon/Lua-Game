@@ -4,7 +4,7 @@
 -- Returns to the saved game state on exit.
 
 local L              = require("core.localization.localization")
-local GameController = require("core.game.game_controller")
+local GameController = require("core.game.controller.game_controller")
 
 local InventoryState = {}
 

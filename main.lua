@@ -1,4 +1,7 @@
 local StateManager = require("core.state_system.state_manager")
+local Settings = require("core.settings")
+local AudioManager = require("core.audio.audio_manager")
+
 
 -- DEV SCREEN MODE
 local DEV = true -- true = windowed half screen, false = fullscreen
@@ -15,7 +18,8 @@ end
 function love.load()
     love.graphics.setNewFont("assets/fonts/PressStart2P-Regular.ttf", 8)
 
-    require("core.settings").load()
+    Settings.load()
+    AudioManager.load()
     StateManager.switch("main_menu")
 end
 

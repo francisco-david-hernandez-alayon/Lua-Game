@@ -19,7 +19,8 @@ function MapTest.enter(sm, L)
         MapLoader.load("assets/maps/TestMap.lua",
             worldData.npcs,
             worldData.objects,
-            worldData.doors)
+            worldData.doors,
+            worldData.triggers)
 
     local startX, startY = GameController.resolveStartPosition(MapTest.worldData, MapTest.spawn)
     MapTest.player = PlayerController.new(MapTest.world, { x = startX, y = startY })
@@ -45,6 +46,10 @@ function MapTest.update(dt)
         end
         for _, npc in ipairs(MapTest.worldData.npcs) do
             npc:update(dt, px, py)
+        end
+
+        for _, trigger in ipairs(MapTest.worldData.triggers) do
+            trigger:update(px, py, GameController)
         end
     end
 end

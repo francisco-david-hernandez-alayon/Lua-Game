@@ -56,6 +56,10 @@ end
 -- Automatically apply a MissionReward — called by MissionController via GameController
 function InventoryController.applyReward(inventory, reward)
     if not reward or not reward:hasReward() then return end
+    -- TODO: Add experience reward
+    -- if reward.expReward then
+    --     inventory:add
+    -- end
     if reward.rewardBits then
         inventory:addBytes(reward.rewardBits)
         print("[InventoryController] applyReward bits:", reward.rewardBits)

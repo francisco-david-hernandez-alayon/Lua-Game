@@ -41,12 +41,18 @@ local function serializeDoor(worldDoor)
     }
 end
 
+local function serializeTrigger(t)
+    return { id = t.id, mapState = t.mapState, enabled = t.enabled }
+end
+
 function GameSerializer.serializeWorldData(worldData)
     local npcs, objects, doors = {}, {}, {}
     for _, v in ipairs(worldData.npcs)    do table.insert(npcs,    serializeNpc(v))    end
     for _, v in ipairs(worldData.objects) do table.insert(objects, serializeObject(v)) end
     for _, v in ipairs(worldData.doors)   do table.insert(doors,   serializeDoor(v))   end
-    return { npcs = npcs, objects = objects, doors = doors }
+    local triggers = {}
+    for _, v in ipairs(worldData.triggers or {}) do table.insert(triggers, serializeTrigger(v)) end
+    return { npcs=npcs, objects=objects, doors=doors, triggers=triggers }
 end
 
 
@@ -82,12 +88,24 @@ local function deserializeDoor(data)
     return worldDoor
 end
 
+local function deserializeTrigger(data)
+    local t = WorldGameData.getTriggerById(data.id)
+    if not t then return nil end
+    t.enabled = data.enabled
+    return t
+end
+
 function GameSerializer.deserializeWorldData(data)
     local npcs, objects, doors = {}, {}, {}
     for _, d in ipairs(data.npcs    or {}) do local v = deserializeNpc(d)    if v then table.insert(npcs,    v) end end
     for _, d in ipairs(data.objects or {}) do local v = deserializeObject(d) if v then table.insert(objects, v) end end
     for _, d in ipairs(data.doors   or {}) do local v = deserializeDoor(d)  if v then table.insert(doors,   v) end end
-    return { npcs = npcs, objects = objects, doors = doors }
+    local triggers = {}
+    for _, d in ipairs(data.triggers or {}) do
+        local v = deserializeTrigger(d)
+        if v then table.insert(triggers, v) end
+    end
+    return { npcs=npcs, objects=objects, doors=doors, triggers=triggers }
 end
 
 return GameSerializer

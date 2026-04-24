@@ -3,9 +3,10 @@
 -- TILED MAP STRUCTURE REQUIRED:
 -- ─────────────────────────────────────────────────────────────────
 -- Object group layers (inside "world" folder in Tiled):
---   "npcs"         Points, name = npc identifier (e.g. "npc_1")
---   "objects"      Points, name = object identifier (e.g. "item_1")
---   "doors"        Points, name = target state (e.g. "door_1")
+--   "npcs"             Points, name = npc identifier (e.g. "npc_1")
+--   "objects"          Points, name = object identifier (e.g. "item_1")
+--   "doors"            Points, name = target state (e.g. "door_1")
+--   "trigger_events":  Points, name = trigger identifier (e.g. trigger_1)
 --
 -- COLLISIONS: automatic from tilelayer tiles with objectGroups in tileset and for a object group calles "colliders"
 -- NOTE: INFINITE TILED MAPS CANNOT BE LOADED
@@ -169,6 +170,25 @@ local function buildDoors(layer)
     return doors
 end
 
+local function buildTriggers(layer)
+    local triggers = {}
+    if not layer then
+        print("[WARN] build_world_tile_map: layer 'trigger_events' not found")
+        return triggers
+    end
+    for _, obj in pairs(layer.objects) do
+        if obj.name and obj.name ~= "" then
+            table.insert(triggers, {
+                id = obj.name,
+                x  = obj.x,
+                y  = obj.y,
+            })
+        end
+    end
+    print("[OK] triggers loaded: " .. #triggers)
+    return triggers
+end
+
 -- MAIN FUNCTION
 local function buildWorldTileMap(map, world)
 
@@ -185,6 +205,7 @@ end
     local npcsLayer       = findLayer(map, "npcs")
     local objectsLayer    = findLayer(map, "objects")
     local doorsLayer      = findLayer(map, "doors")
+    local triggersLayer = findLayer(map, "trigger_events")
 
     print("[INFO] build_world_tile_map: building world for map")
 
@@ -192,6 +213,7 @@ end
         npcs        = buildNpcs(npcsLayer),
         objects     = buildObjects(objectsLayer),
         doors       = buildDoors(doorsLayer),
+        triggers    = buildTriggers(triggersLayer),
     }
 end
 

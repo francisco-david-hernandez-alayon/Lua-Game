@@ -25,7 +25,7 @@ local function resolvePositions(elements, worldDataList)
     return elements
 end
 
-function MapLoader.load(mapPath, npcs, objects, doors)
+function MapLoader.load(mapPath, npcs, objects, doors, triggers)
     love.physics.setMeter(32)
     local world = love.physics.newWorld(0, 0)
     local map   = sti(mapPath)
@@ -50,6 +50,7 @@ function MapLoader.load(mapPath, npcs, objects, doors)
         "world.npcs",
         "world.objects",
         "world.doors",
+        "world.trigger_events",
     }
 
     -- colliders if is objectgroup
@@ -67,11 +68,13 @@ function MapLoader.load(mapPath, npcs, objects, doors)
     if npcs        then resolvePositions(npcs,        worldData.npcs)        end
     if objects     then resolvePositions(objects,     worldData.objects)     end
     if doors       then resolvePositions(doors,       worldData.doors)       end
+    if triggers then resolvePositions(triggers, worldData.triggers) end
 
     return map, world, spawn, {
         npcs        = npcs        or {},
         objects     = objects     or {},
         doors       = doors       or {},
+        triggers = triggers or {},
     }
 end
 

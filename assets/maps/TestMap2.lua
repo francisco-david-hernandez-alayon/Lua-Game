@@ -9,8 +9,8 @@ return {
   height = 176,
   tilewidth = 32,
   tileheight = 32,
-  nextlayerid = 10,
-  nextobjectid = 22,
+  nextlayerid = 12,
+  nextobjectid = 23,
   properties = {},
   tilesets = {
     {
@@ -1096,6 +1096,36 @@ return {
               shape = "point",
               x = 2319,
               y = 3966,
+              width = 0,
+              height = 0,
+              rotation = 0,
+              opacity = 1,
+              visible = true,
+              properties = {}
+            }
+          }
+        },
+        {
+          type = "objectgroup",
+          draworder = "topdown",
+          id = 11,
+          name = "trigger_events",
+          class = "",
+          visible = true,
+          opacity = 1,
+          offsetx = 0,
+          offsety = 0,
+          parallaxx = 1,
+          parallaxy = 1,
+          properties = {},
+          objects = {
+            {
+              id = 22,
+              name = "trigger_test_1",
+              type = "",
+              shape = "point",
+              x = 2222.67,
+              y = 4047.33,
               width = 0,
               height = 0,
               rotation = 0,

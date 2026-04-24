@@ -1,4 +1,6 @@
--- Routes events to the correct handler by type.
+-- core/game/controller/event_controller.lua
+--
+---- Routes events to the correct handler by type.
 -- Used internally by GameController — do not call directly.
 
 local Event = require("core.event.event")

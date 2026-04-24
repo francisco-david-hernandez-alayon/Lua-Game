@@ -25,17 +25,23 @@ local sources = {
         require("core.game.world_data.world_doors_list.secondary_doors"),
         require("core.game.world_data.world_doors_list.test_doors"),
     },
+    triggers = {
+        require("core.game.world_data.world_trigger_events_list.main_trigger_events"),
+        require("core.game.world_data.world_trigger_events_list.secondary_trigger_events"),
+        require("core.game.world_data.world_trigger_events_list.test_trigger_events"),
+    },
 }
 
 local WorldGameData = {}
 
 -- Merge all source lists into flat lists
 function WorldGameData.buildWorldData()
-    local npcs, objects, doors = {}, {}, {}
+    local npcs, objects, doors, triggers = {}, {}, {}, {}
     for _, src in ipairs(sources.npcs)    do for _, v in ipairs(src) do table.insert(npcs,    v) end end
     for _, src in ipairs(sources.objects) do for _, v in ipairs(src) do table.insert(objects, v) end end
     for _, src in ipairs(sources.doors)   do for _, v in ipairs(src) do table.insert(doors,   v) end end
-    return { npcs = npcs, objects = objects, doors = doors }
+    for _, src in ipairs(sources.triggers) do for _, v in ipairs(src) do table.insert(triggers, v) end end
+    return { npcs = npcs, objects = objects, doors = doors, triggers = triggers }
 end
 
 -- Lookup functions (used by deserializer to restore state)
@@ -66,6 +72,16 @@ function WorldGameData.getDoorById(id)
         end
     end
     print("[WARN] WorldGameData.getDoorById: not found: " .. id)
+    return nil
+end
+
+function WorldGameData.getTriggerById(id)
+    for _, src in ipairs(sources.triggers) do
+        for _, v in ipairs(src) do
+            if v.id == id then return v end
+        end
+    end
+    print("[WARN] WorldGameData.getTriggerById: not found: " .. id)
     return nil
 end
 

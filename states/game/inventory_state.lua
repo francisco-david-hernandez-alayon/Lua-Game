@@ -50,6 +50,7 @@ function InventoryState.draw()
     local sh   = love.graphics.getHeight()
     local font = love.graphics.getFont()
     local inv  = currentInventory()
+    local bytes = inv.bytes or 0
 
     -- Background
     love.graphics.setColor(0.05, 0.05, 0.05)
@@ -57,7 +58,7 @@ function InventoryState.draw()
 
     -- Title
     love.graphics.setColor(0.2, 0.6, 1)
-    love.graphics.print("[ INVENTORY ]", 24, 16)
+    love.graphics.print("[ INVENTORY ] Bytes: " .. bytes .. "B", 24, 16)
 
     -- Tabs
     local tabLabels = {

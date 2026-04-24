@@ -188,19 +188,26 @@ end
 -- WORLD DATA
 function GameController.getWorldDataForState(state)
     requireSession()
-    local npcs, objects, doors = {}, {}, {}
-    for _, v in ipairs(currentGame.worldData.npcs)    do
-        if v.mapState == state then table.insert(npcs,    v) end
+    local npcs, objects, doors, triggers = {}, {}, {}, {}
+    for _, v in ipairs(currentGame.worldData.npcs)     do
+        if v.mapState == state then table.insert(npcs,     v) end
     end
-    for _, v in ipairs(currentGame.worldData.objects) do
-        if v.mapState == state then table.insert(objects, v) end
+    for _, v in ipairs(currentGame.worldData.objects)  do
+        if v.mapState == state then table.insert(objects,  v) end
     end
-    for _, v in ipairs(currentGame.worldData.doors)   do
-        if v.mapState == state then table.insert(doors,   v) end
+    for _, v in ipairs(currentGame.worldData.doors)    do
+        if v.mapState == state then table.insert(doors,    v) end
     end
+    for _, v in ipairs(currentGame.worldData.triggers) do
+        if v.mapState == state then table.insert(triggers, v) end
+    end
+
+    -- DEBUG
     print("[GameController] getWorldDataForState [" .. state .. "]" ..
-          " npcs:" .. #npcs .. " objects:" .. #objects .. " doors:" .. #doors)
-    return { npcs = npcs, objects = objects, doors = doors }
+          " npcs:" .. #npcs .. " objects:" .. #objects ..
+          " doors:" .. #doors .. " triggers:" .. #triggers)
+
+    return { npcs = npcs, objects = objects, doors = doors, triggers = triggers }
 end
 
 function GameController.getNpc(id)

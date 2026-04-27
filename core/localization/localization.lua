@@ -14,11 +14,13 @@ local languageFiles = {
         require("core.localization.en.menu_en"),
         require("core.localization.en.testing_en"),
         require("core.localization.en.game_en"),
+        require("core.localization.en.languages_en"),
     },
     ES = {
         require("core.localization.es.menu_es"),
         require("core.localization.es.testing_es"),
         require("core.localization.es.game_es"),
+        require("core.localization.es.languages_es"),
     },
 }
 

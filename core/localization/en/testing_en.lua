@@ -28,4 +28,22 @@ return {
     test_task_1_desc    = "Complete the first test task.",
     test_task_2_name    = "Test Task 2",
     test_task_2_desc    = "Complete the second test task.",
+
+    -- Programming languages
+    test_level_2_name            = "Level 2",
+    test_level_2_desc            = "Growing stronger.",
+    test_level_3_name            = "Level 3",
+    test_level_3_desc            = "Specialization unlocked.",
+    test_level_4_name            = "Level 4",
+    test_level_4_desc            = "Passive mastery.",
+    skill_test_compile           = "Compile",
+    skill_test_compile_desc      = "A basic Backend attack.",
+    skill_test_debug             = "Debug",
+    skill_test_debug_desc        = "A precise special Backend attack.",
+    passive_backend_boost_name   = "Backend Mastery",
+    passive_backend_boost_desc   = "Backend attacks deal +5 bonus damage.",
+    passive_system_boost_name    = "System Affinity",
+    passive_system_boost_desc    = "System attacks deal +5 bonus damage.",
+    language_items_full          = "No item slots available.",
+    language_item_equipped       = "Item equipped.",
 }

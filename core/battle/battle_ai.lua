@@ -5,18 +5,20 @@
 
 local BattleAI = {}
 
--- Returns a random attack from the given language's currentAttacks
 function BattleAI.chooseAttack(language)
-    local attacks = language.currentAttacks
-    if #attacks == 0 then return nil end
-    return attacks[math.random(#attacks)]
+    if not language then return nil end
+
+    local skills = language.currentSkills
+    if #skills == 0 then return nil end
+    return skills[math.random(#skills)]
 end
 
--- Returns a random active language from a list
 function BattleAI.chooseLanguage(languages)
     local active = {}
     for _, lang in ipairs(languages) do
-        if lang:isActive() then table.insert(active, lang) end
+        if lang and lang.isActive and lang:isActive() then
+            table.insert(active, lang)
+        end
     end
     if #active == 0 then return nil end
     return active[math.random(#active)]

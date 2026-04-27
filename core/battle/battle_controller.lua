@@ -35,10 +35,11 @@ function BattleController.new(programmerName, playerLanguages, enemyLanguages)
         currentPlayerLanguage   = nil,
         currentEnemyLanguage    = nil,
         phase                   = PHASE.PICK_LANGUAGE,
-        pendingPlayerAttack     = nil,
-        pendingEnemyAttack      = nil,
+        pendingPlayerSkill     = nil,
+        pendingEnemySkill      = nil,
         winner                  = nil,   -- "player" | "enemy" | nil
         battleLog               = {},    -- list of strings for the info box
+        messageQueue = {},
     }, BattleController)
 
     -- Enemy picks starting language via AI
@@ -106,12 +107,12 @@ function BattleController:playerSwapLanguage(language)
     self:log("Player swapped to " .. language.language_name)
 
     -- Enemy attacks the new language immediately
-    local enemyAttack = BattleAI.chooseAttack(self.currentEnemyLanguage)
-    if enemyAttack then
-        self.currentPlayerLanguage:takeDamage(enemyAttack.damage)
+    local enemySkill = BattleAI.chooseAttack(self.currentEnemyLanguage)
+    if enemySkill then
+        self.currentPlayerLanguage:takeDamage(enemySkill.baseDamage)
         self:log(self.currentEnemyLanguage.language_name ..
-            " used " .. enemyAttack.nameKey ..
-            " → " .. enemyAttack.damage .. " damage to " ..
+            " used " .. enemySkill.nameKey ..
+            " → " .. enemySkill.baseDamage .. " damage to " ..
             self.currentPlayerLanguage.language_name)
     end
 
@@ -127,8 +128,8 @@ end
 
 -- Player chose an attack
 function BattleController:playerAttack(attack)
-    self.pendingPlayerAttack = attack
-    self.pendingEnemyAttack  = BattleAI.chooseAttack(self.currentEnemyLanguage)
+    self.pendingPlayerSkill = attack
+    self.pendingEnemySkill  = BattleAI.chooseAttack(self.currentEnemyLanguage)
     self.phase = PHASE.RESOLVING
     self:resolveAttacks()
 end
@@ -136,11 +137,11 @@ end
 -- Resolve both attacks
 function BattleController:resolveAttacks()
     -- Player attacks first
-    if self.pendingPlayerAttack then
-        self.currentEnemyLanguage:takeDamage(self.pendingPlayerAttack.damage)
+    if self.pendingPlayerSkill then
+        self.currentEnemyLanguage:takeDamage(self.pendingPlayerSkill.baseDamage)
         self:log(self.currentPlayerLanguage.language_name ..
-            " used " .. self.pendingPlayerAttack.nameKey ..
-            " → " .. self.pendingPlayerAttack.damage .. " damage to " ..
+            " used " .. self.pendingPlayerSkill.nameKey ..
+            " → " .. self.pendingPlayerSkill.baseDamage .. " damage to " ..
             self.currentEnemyLanguage.language_name)
     end
 
@@ -155,11 +156,11 @@ function BattleController:resolveAttacks()
     end
 
     -- Enemy attacks
-    if self.pendingEnemyAttack and self.currentEnemyLanguage then
-        self.currentPlayerLanguage:takeDamage(self.pendingEnemyAttack.damage)
+    if self.pendingEnemySkill and self.currentEnemyLanguage then
+        self.currentPlayerLanguage:takeDamage(self.pendingEnemySkill.baseDamage)
         self:log(self.currentEnemyLanguage.language_name ..
-            " used " .. self.pendingEnemyAttack.nameKey ..
-            " → " .. self.pendingEnemyAttack.damage .. " damage to " ..
+            " used " .. self.pendingEnemySkill.nameKey ..
+            " → " .. self.pendingEnemySkill.baseDamage .. " damage to " ..
             self.currentPlayerLanguage.language_name)
     end
 
@@ -173,8 +174,59 @@ function BattleController:resolveAttacks()
         self.phase = PHASE.PLAYER_ACTION
     end
 
-    self.pendingPlayerAttack = nil
-    self.pendingEnemyAttack  = nil
+    self.pendingPlayerSkill = nil
+    self.pendingEnemySkill  = nil
+end
+
+
+
+function BattleController:pushMessage(msg)
+    table.insert(self.messageQueue, msg)
+end
+
+function BattleController:popMessage()
+    if #self.messageQueue == 0 then return nil end
+    return table.remove(self.messageQueue, 1)
+end
+
+function BattleController:hasMessages()
+    return #self.messageQueue > 0
+end
+
+-- Apply a skill attack from attacker to defender, triggering passives
+function BattleController:applySkill(attacker, defender, skill)
+    -- Trigger attacker before_attack passives
+    for _, p in ipairs(attacker:getPassivesByTrigger("before_attack")) do
+        p:apply(self, attacker)
+    end
+
+    -- Trigger defender before_receive passives
+    for _, p in ipairs(defender:getPassivesByTrigger("before_receive")) do
+        p:apply(self, defender)
+    end
+
+    local damage = attacker:calculateDamage(skill)
+    local actual = defender:takeDamage(damage, skill.skillType)
+
+    self:pushMessage(attacker.language_name ..
+        " used " .. skill.nameKey ..
+        " → " .. actual .. " damage to " .. defender.language_name)
+
+    if defender:isObsolete() then
+        self:pushMessage(defender.language_name .. " is OBSOLETE")
+    end
+
+    -- Trigger attacker after_attack passives
+    for _, p in ipairs(attacker:getPassivesByTrigger("after_attack")) do
+        p:apply(self, attacker)
+    end
+
+    -- Trigger defender after_receive passives
+    if not defender:isObsolete() then
+        for _, p in ipairs(defender:getPassivesByTrigger("after_receive")) do
+            p:apply(self, defender)
+        end
+    end
 end
 
 return BattleController

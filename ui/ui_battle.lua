@@ -16,8 +16,8 @@ end
 
 local function buildAttackMenu(bc)
     local labels = {}
-    for _, atk in ipairs(bc.currentPlayerLanguage.currentAttacks) do
-        table.insert(labels, atk.nameKey .. " (" .. atk.damage .. ")")
+    for _, skill in ipairs(bc.currentPlayerLanguage.currentSkills) do
+        table.insert(labels, skill.nameKey .. " (" .. skill.baseDamage .. ")")
     end
     table.insert(labels, L.get("battle_back"))
     return labels
@@ -29,7 +29,7 @@ local function buildSwapMenu(bc)
     for _, lang in ipairs(langs) do
         if lang ~= bc.currentPlayerLanguage then
             table.insert(labels, lang.language_name ..
-                " [" .. lang.linesOfCode .. "/" .. lang.maxLinesOfCode .. "]")
+                " [" .. lang.attributes.hp .. "/" .. lang.attributes.maxHp .. "]")
         end
     end
     table.insert(labels, L.get("battle_back"))
@@ -42,7 +42,7 @@ local function buildPickMenu(bc)
     for _, lang in ipairs(langs) do
         if lang ~= bc.currentPlayerLanguage then
             table.insert(labels, lang.language_name ..
-                " [" .. lang.linesOfCode .. "/" .. lang.maxLinesOfCode .. "]")
+                " [" .. lang.attributes.hp .. "/" .. lang.attributes.maxHp .. "]")
         end
     end
     return labels
@@ -50,9 +50,9 @@ end
 
 local function getMenu(bc, menuMode)
     if bc.phase == PHASE.PICK_LANGUAGE then return buildPickMenu(bc) end
-    if menuMode == "action"            then return buildActionMenu() end
-    if menuMode == "attack"            then return buildAttackMenu(bc) end
-    if menuMode == "swap"              then return buildSwapMenu(bc) end
+    if menuMode == "action" then return buildActionMenu() end
+    if menuMode == "attack" then return buildAttackMenu(bc) end
+    if menuMode == "swap" then return buildSwapMenu(bc) end
     return {}
 end
 
@@ -70,37 +70,32 @@ function BattleUI.draw(bc, selected, menuMode)
     local LOG_H   = 48
     local ARENA_H = sh - LOG_H
 
-    -- Background
     love.graphics.setColor(0.08, 0.08, 0.08)
     love.graphics.rectangle("fill", 0, 0, sw, sh)
 
-    -- Arena
     love.graphics.setColor(0.12, 0.12, 0.12)
     love.graphics.rectangle("fill", 0, 0, ARENA_W, ARENA_H)
 
-    -- Enemy language (top)
     if bc.currentEnemyLanguage then
         local el = bc.currentEnemyLanguage
         love.graphics.setColor(0.8, 0.2, 0.2)
         love.graphics.print(
-            el.language_name .. "  [" .. el.linesOfCode .. "/" .. el.maxLinesOfCode .. "]",
+            el.language_name .. "  [" .. el.attributes.hp .. "/" .. el.attributes.maxHp .. "]",
             16, 16)
         love.graphics.setColor(0.4, 0.4, 0.4)
         love.graphics.print(bc.programmerName, 16, 36)
     end
 
-    -- Player language (bottom)
     if bc.currentPlayerLanguage then
         local pl = bc.currentPlayerLanguage
         love.graphics.setColor(0.2, 0.6, 1)
         love.graphics.print(
-            pl.language_name .. "  [" .. pl.linesOfCode .. "/" .. pl.maxLinesOfCode .. "]",
+            pl.language_name .. "  [" .. pl.attributes.hp .. "/" .. pl.attributes.maxHp .. "]",
             16, ARENA_H - 48)
         love.graphics.setColor(0.4, 0.4, 0.4)
         love.graphics.print(L.get("battle_you"), 16, ARENA_H - 28)
     end
 
-    -- Menu panel
     love.graphics.setColor(0.15, 0.15, 0.15)
     love.graphics.rectangle("fill", ARENA_W, 0, MENU_W, ARENA_H)
     love.graphics.setColor(0.3, 0.3, 0.3)
@@ -118,7 +113,6 @@ function BattleUI.draw(bc, selected, menuMode)
         love.graphics.setColor(0.5, 0.5, 0.5)
         love.graphics.print("[E] " .. L.get("battle_exit"), ARENA_W + 8, 56)
     else
-        -- Title
         love.graphics.setColor(0.6, 0.6, 0.6)
         if bc.phase == PHASE.PICK_LANGUAGE then
             love.graphics.setColor(1, 0.6, 0)
@@ -130,15 +124,13 @@ function BattleUI.draw(bc, selected, menuMode)
             love.graphics.print(title, ARENA_W + 8, 8)
         end
 
-        -- Menu items
         local menu = getMenu(bc, menuMode)
         for i, item in ipairs(menu) do
-            love.graphics.setColor(i == selected and {1, 1, 0} or {1, 1, 1})
+            love.graphics.setColor(i == selected and 1 or 1, i == selected and 1 or 1, i == selected and 0 or 1)
             love.graphics.print("> " .. item, ARENA_W + 8, 28 + (i - 1) * 20)
         end
     end
 
-    -- Log box 
     love.graphics.setColor(0.05, 0.05, 0.05)
     love.graphics.rectangle("fill", 0, ARENA_H, sw, LOG_H)
     love.graphics.setColor(0.3, 0.3, 0.3)

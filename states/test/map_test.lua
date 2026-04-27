@@ -1,12 +1,27 @@
+-- states/test/map_test.lua
+
 local MapLoader        = require("core.map_loader")
 local PlayerController = require("core.player_controller")
 local Camera           = require("core.camera")
 local UIController     = require("ui.ui_game_controller")
 local GameController = require("core.game.controller.game_controller")
 local S = require("core.state_system.states_names")
+local BattleController = require("core.battle.battle_controller")
+local ProgrammingLanguage = require("core.programming_languages.programming_language")
 
 local MapTest = {}
 local STATENAME = S.test.map_test
+
+
+local function buildTestBattle()
+    local TestLanguage = require("core.programming_languages.languages.test_language")
+
+    return BattleController.new(
+        "EnemyProgrammer",
+        { TestLanguage.new(), TestLanguage.new(), TestLanguage.new() },
+        { TestLanguage.new(), TestLanguage.new() }
+    )
+end
 
 
 function MapTest.enter(sm, L)

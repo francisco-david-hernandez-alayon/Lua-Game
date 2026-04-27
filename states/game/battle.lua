@@ -72,12 +72,12 @@ function Battle.keypressed(key)
             end
 
         elseif menuMode == "attack" then
-            local attacks = bc.currentPlayerLanguage.currentAttacks
-            if selected == #attacks + 1 then
+            local skills = bc.currentPlayerLanguage.currentSkills
+            if selected == #skills + 1 then
                 menuMode = "action" selected = 1
             else
-                local atk = attacks[selected]
-                if atk then bc:playerAttack(atk) menuMode = "action" selected = 1 end
+                local skill = skills[selected]
+                if skill then bc:playerAttack(skill) menuMode = "action" selected = 1 end
             end
 
         elseif menuMode == "swap" then

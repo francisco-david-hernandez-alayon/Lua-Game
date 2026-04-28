@@ -2,118 +2,182 @@
 --
 -- A programming language entity used in progression and battle.
 --
--- ATTRIBUTES (base — persist between battles):
---   language_name:     display string
---   languageType:      "Backend" | "Frontend" | "System"
---   attributes:        stat table — nil stats are unused by this language type:
---     hp              → current health (persists between battles)
---     maxHp           → maximum health
---     speed           → lower = faster turn order
---     backend_attack  → Backend skill damage multiplier  (Backend only)
---     backend_defense → damage reduction vs Backend      (Backend only)
---     frontend_attack → Frontend skill damage multiplier (Frontend only)
---     frontend_defense→ damage reduction vs Frontend     (Frontend only)
---     system_attack   → System skill damage multiplier   (System only)
---     system_defense  → damage reduction vs System       (System only)
+-- BASE ATTRIBUTES (persist between battles):
+--   language_name:    display string
+--   languageTypes:    list of LanguageTypes
+--   attributes:       permanent stat table:
+--     hp
+--     speed
+--     atk_backend     / def_backend
+--     atk_frontend    / def_frontend
+--     atk_system      / def_system
+--     atk_mobile      / def_mobile
+--     atk_scripting   / def_scripting
+--     atk_ai          / def_ai
+--     atk_game        / def_game
+--     atk_scientific  / def_scientific
 --
--- ATTRIBUTES (battle — reset each battle except hp):
---   currentBattle.status        → "active" | "obsolete"
---   currentBattle.statusEffects → list of active effects (future use)
+-- BATTLE ATTRIBUTES (reset every battle):
+--   currentBattle.currentHp
+--   currentBattle.currentSpeed
+--   currentBattle.currentAttributes
 --
 -- PROGRESSION:
 --   level, exp, levelTree
---   chosenUpgrades  → list of upgrade ids already applied
---   specialization  → nil or string id
+--   chosenUpgrades
+--   specialization
 --
 -- SKILLS & PASSIVES:
---   skills          → full pool of known skills
---   currentSkills   → up to MAX_CURRENT_SKILLS equipped
---   passiveAbilities→ list of active passives
+--   skills
+--   currentSkills
+--   passiveAbilities
 --
 -- ITEMS:
---   equippedItems   → list, max maxEquippedItems (default 2)
+--   equippedItems
+--   maxEquippedItems
 
 local LevelTree = require("core.programming_languages.level_tree")
 local LanguageTypes = require("core.programming_languages.language_types")
 
 local MAX_CURRENT_SKILLS = 4
-local DEFAULT_MAX_ITEMS  = 2
+local DEFAULT_MAX_ITEMS = 2
 
 -- Which attack/defense stats belong to each type.
 local TYPE_STATS = {
-    [LanguageTypes.BACKEND]  = { attack = "backend_attack",  defense = "backend_defense"  },
-    [LanguageTypes.FRONTEND] = { attack = "frontend_attack", defense = "frontend_defense" },
-    [LanguageTypes.SYSTEM]   = { attack = "system_attack",   defense = "system_defense"   },
+    [LanguageTypes.BACKEND] = { attack = "atk_backend", defense = "def_backend" },
+    [LanguageTypes.FRONTEND] = { attack = "atk_frontend", defense = "def_frontend" },
+    [LanguageTypes.SYSTEM] = { attack = "atk_system", defense = "def_system" },
+    [LanguageTypes.MOBILE] = { attack = "atk_mobile", defense = "def_mobile" },
+    [LanguageTypes.SCRIPTING] = { attack = "atk_scripting", defense = "def_scripting" },
+    [LanguageTypes.AI] = { attack = "atk_ai", defense = "def_ai" },
+    [LanguageTypes.GAME] = { attack = "atk_game", defense = "def_game" },
+    [LanguageTypes.SCIENTIFIC] = { attack = "atk_scientific", defense = "def_scientific" },
 }
-
-local STATUS = { ACTIVE = "active", OBSOLETE = "obsolete" }
 
 local ProgrammingLanguage = {}
 ProgrammingLanguage.__index = ProgrammingLanguage
-ProgrammingLanguage.STATUS = STATUS
 ProgrammingLanguage.TYPE_STATS = TYPE_STATS
 
--- Build default attributes table for a given language type.
--- Stats not relevant to the type are nil.
-local function buildAttributes(languageType, hp, speed, typeAttack, typeDefense)
-    local attrs = {
-        hp               = hp,
-        maxHp            = hp,
-        speed            = speed,
-        backend_attack   = nil,
-        backend_defense  = nil,
-        frontend_attack  = nil,
-        frontend_defense = nil,
-        system_attack    = nil,
-        system_defense   = nil,
-    }
+-- Returns a full stat table with all supported type stats.
+local function createEmptyAttributes(hp, speed)
+    return {
+        hp = hp,
+        speed = speed,
 
-    local ts = TYPE_STATS[languageType]
-    if ts then
-        attrs[ts.attack]  = typeAttack
-        attrs[ts.defense] = typeDefense
+        atk_backend = nil,
+        def_backend = nil,
+
+        atk_frontend = nil,
+        def_frontend = nil,
+
+        atk_system = nil,
+        def_system = nil,
+
+        atk_mobile = nil,
+        def_mobile = nil,
+
+        atk_scripting = nil,
+        def_scripting = nil,
+
+        atk_ai = nil,
+        def_ai = nil,
+
+        atk_game = nil,
+        def_game = nil,
+
+        atk_scientific = nil,
+        def_scientific = nil,
+    }
+end
+
+-- Builds the permanent attribute table for a language with one or more types.
+local function buildAttributes(languageTypes, hp, speed, typeAttributes)
+    local attrs = createEmptyAttributes(hp, speed)
+
+    for _, languageType in ipairs(languageTypes) do
+        local ts = TYPE_STATS[languageType]
+        local typeData = typeAttributes and typeAttributes[languageType]
+
+        if ts and typeData then
+            attrs[ts.attack] = typeData.attack
+            attrs[ts.defense] = typeData.defense
+        end
     end
 
     return attrs
 end
 
+-- Creates the battle snapshot from the permanent attributes.
+local function buildCurrentBattle(attributes)
+    local currentAttributes = {}
+
+    for key, value in pairs(attributes) do
+        currentAttributes[key] = value
+    end
+
+    return {
+        currentHp = attributes.hp,
+        currentSpeed = attributes.speed,
+        currentAttributes = currentAttributes,
+    }
+end
+
+local function isValidLanguageTypes(languageTypes)
+    if type(languageTypes) ~= "table" or #languageTypes == 0 then
+        return false
+    end
+
+    for _, languageType in ipairs(languageTypes) do
+        if not TYPE_STATS[languageType] then
+            return false
+        end
+    end
+
+    return true
+end
+
 function ProgrammingLanguage.new(data)
     assert(type(data.language_name) == "string", "language_name must be a string")
-    assert(TYPE_STATS[data.languageType], "languageType must be Backend/Frontend/System")
+    assert(isValidLanguageTypes(data.languageTypes), "languageTypes must be a non-empty list of valid LanguageTypes")
     assert(type(data.hp) == "number", "hp must be a number")
     assert(type(data.speed) == "number", "speed must be a number")
-    assert(type(data.typeAttack) == "number", "typeAttack must be a number")
-    assert(type(data.typeDefense) == "number", "typeDefense must be a number")
+    assert(type(data.typeAttributes) == "table", "typeAttributes must be a table")
     assert(data.levelTree == nil or data.levelTree.levels, "levelTree must be a LevelTree or nil")
 
+    local baseAttributes = buildAttributes(
+        data.languageTypes,
+        data.hp,
+        data.speed,
+        data.typeAttributes
+    )
+
+
     local self = setmetatable({
+        -- Identity
         language_name = data.language_name,
-        languageType = data.languageType,
+        languageTypes = data.languageTypes,
 
-        attributes = buildAttributes(
-            data.languageType,
-            data.hp,
-            data.speed,
-            data.typeAttack,
-            data.typeDefense
-        ),
+        -- Permanent stats
+        attributes = baseAttributes,
 
-        currentBattle = {
-            status = STATUS.ACTIVE,
-            statusEffects = {},
-        },
+        -- Battle-only stats
+        currentBattle = buildCurrentBattle(baseAttributes),
 
+        -- Progression
         level = data.level or 1,
         exp = data.exp or 0,
         levelTree = data.levelTree or nil,
         chosenUpgrades = {},
         specialization = nil,
 
+        -- Skills
         skills = {},
         currentSkills = {},
 
+        -- Passives
         passiveAbilities = {},
 
+        -- Items
         equippedItems = {},
         maxEquippedItems = data.maxEquippedItems or DEFAULT_MAX_ITEMS,
     }, ProgrammingLanguage)
@@ -122,41 +186,54 @@ function ProgrammingLanguage.new(data)
 end
 
 function ProgrammingLanguage:resetBattleState()
-    self.currentBattle = { status = STATUS.ACTIVE, statusEffects = {} }
+    self.currentBattle = buildCurrentBattle(self.attributes)
 end
 
-function ProgrammingLanguage:isActive() return self.currentBattle.status == STATUS.ACTIVE end
-function ProgrammingLanguage:isObsolete() return self.currentBattle.status == STATUS.OBSOLETE end
+function ProgrammingLanguage:isActive()
+    return self.currentBattle.currentHp > 0
+end
+
+function ProgrammingLanguage:isObsolete()
+    return self.currentBattle.currentHp <= 0
+end
 
 function ProgrammingLanguage:setObsolete()
-    self.currentBattle.status = STATUS.OBSOLETE
+    self.currentBattle.currentHp = 0
     print("[ProgrammingLanguage] " .. self.language_name .. " is OBSOLETE")
 end
 
+-- Returns the current battle attack stat for a given type.
+function ProgrammingLanguage:getCurrentTypeAttack(languageType)
+    local ts = TYPE_STATS[languageType]
+    if not ts then
+        return 0
+    end
+    return self.currentBattle.currentAttributes[ts.attack] or 0
+end
+
+-- Returns the current battle defense stat for a given type.
+function ProgrammingLanguage:getCurrentTypeDefense(languageType)
+    local ts = TYPE_STATS[languageType]
+    if not ts then
+        return 0
+    end
+    return self.currentBattle.currentAttributes[ts.defense] or 0
+end
+
+-- Takes damage using current battle defense values.
+-- Returns actual damage dealt.
 function ProgrammingLanguage:takeDamage(amount, skillType)
-    local totalDef, count = 0, 0
-    for key, val in pairs(self.attributes) do
-        if key:find("_defense") and val ~= nil then
-            totalDef = totalDef + val
-            count = count + 1
-        end
-    end
+    local defenseValue = self:getCurrentTypeDefense(skillType)
+    local actual = math.max(1, math.floor(amount - defenseValue * 0.5))
 
-    local avgDefense = count > 0 and (totalDef / count) or 0
-    local actual = math.max(1, math.floor(amount - avgDefense * 0.5))
-
-    self.attributes.hp = math.max(0, self.attributes.hp - actual)
-    if self.attributes.hp <= 0 then
-        self:setObsolete()
-    end
-
+    self.currentBattle.currentHp = math.max(0, self.currentBattle.currentHp - actual)
     return actual
 end
 
+-- Calculates damage using current battle attack values.
 function ProgrammingLanguage:calculateDamage(skill)
-    local ts = TYPE_STATS[skill.skillType]
-    local atkStat = ts and self.attributes[ts.attack] or 0
-    return math.floor(skill.baseDamage + (atkStat or 0) * 0.5)
+    local atkStat = self:getCurrentTypeAttack(skill.skillType)
+    return math.floor(skill.baseDamage + atkStat * 0.5)
 end
 
 function ProgrammingLanguage:addSkill(skill)
@@ -201,13 +278,11 @@ function ProgrammingLanguage:getPassivesByTrigger(trigger)
     return result
 end
 
+-- Applies permanent attribute bonuses.
 function ProgrammingLanguage:addAttributeBonus(bonuses)
     for stat, delta in pairs(bonuses) do
         if self.attributes[stat] ~= nil then
             self.attributes[stat] = self.attributes[stat] + delta
-            if stat == "hp" then
-                self.attributes.maxHp = self.attributes.maxHp + delta
-            end
         end
     end
 end
@@ -216,6 +291,7 @@ function ProgrammingLanguage:equipItem(item)
     if #self.equippedItems >= self.maxEquippedItems then
         return nil, "language_items_full"
     end
+
     table.insert(self.equippedItems, item)
     return true, "language_item_equipped"
 end
@@ -227,7 +303,9 @@ end
 
 function ProgrammingLanguage:addExp(amount)
     assert(type(amount) == "number" and amount > 0, "amount must be positive")
-    if not self.levelTree then return false, nil end
+    if not self.levelTree then
+        return false, nil
+    end
 
     self.exp = self.exp + amount
     local nextNode = self.levelTree:getNextLevel(self.level)
@@ -248,7 +326,9 @@ function ProgrammingLanguage:addExp(amount)
 end
 
 function ProgrammingLanguage:applyUpgrade(upgradeIndex)
-    if not self.levelTree then return nil, "no_level_tree" end
+    if not self.levelTree then
+        return nil, "no_level_tree"
+    end
 
     local node = self.levelTree:getLevel(self.level)
     if not node or not node.upgrades[upgradeIndex] then

@@ -29,7 +29,7 @@ local function buildSwapMenu(bc)
     for _, lang in ipairs(langs) do
         if lang ~= bc.currentPlayerLanguage then
             table.insert(labels, lang.language_name ..
-                " [" .. lang.attributes.hp .. "/" .. lang.attributes.maxHp .. "]")
+                " [" .. lang.currentBattle.currentHp .. "/" .. lang.attributes.maxHp .. "]")
         end
     end
     table.insert(labels, L.get("battle_back"))
@@ -42,7 +42,7 @@ local function buildPickMenu(bc)
     for _, lang in ipairs(langs) do
         if lang ~= bc.currentPlayerLanguage then
             table.insert(labels, lang.language_name ..
-                " [" .. lang.attributes.hp .. "/" .. lang.attributes.maxHp .. "]")
+                " [" .. lang.currentBattle.currentHp .. "/" .. lang.attributes.maxHp .. "]")
         end
     end
     return labels
@@ -80,7 +80,7 @@ function BattleUI.draw(bc, selected, menuMode)
         local el = bc.currentEnemyLanguage
         love.graphics.setColor(0.8, 0.2, 0.2)
         love.graphics.print(
-            el.language_name .. "  [" .. el.attributes.hp .. "/" .. el.attributes.maxHp .. "]",
+            el.language_name .. "  [" .. el.currentBattle.currentHp .. "/" .. el.attributes.maxHp .. "]",
             16, 16)
         love.graphics.setColor(0.4, 0.4, 0.4)
         love.graphics.print(bc.programmerName, 16, 36)
@@ -90,7 +90,7 @@ function BattleUI.draw(bc, selected, menuMode)
         local pl = bc.currentPlayerLanguage
         love.graphics.setColor(0.2, 0.6, 1)
         love.graphics.print(
-            pl.language_name .. "  [" .. pl.attributes.hp .. "/" .. pl.attributes.maxHp .. "]",
+            pl.language_name .. "  [" .. pl.currentBattle.currentHp .. "/" .. pl.attributes.maxHp .. "]",
             16, ARENA_H - 48)
         love.graphics.setColor(0.4, 0.4, 0.4)
         love.graphics.print(L.get("battle_you"), 16, ARENA_H - 28)

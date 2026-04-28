@@ -1,6 +1,6 @@
 -- core/programming_languages/languages/test_language.lua
 --
--- Test language: Backend type, levels 1-3 with upgrades.
+-- Test language: Backend + Scripting type, levels 1-3 with upgrades.
 
 local ProgrammingLanguage = require("core.programming_languages.programming_language")
 local LevelTree = require("core.programming_languages.level_tree")
@@ -68,15 +68,15 @@ local upgrade_test_passive_system = Upgrade.new(
 
 local tree = LevelTree.new({
     LevelNode.new(2, "test_level_2_name", "test_level_2_desc", 100,
-        { hp = 10, speed = 10, backend_attack = 10, backend_defense = 10 },
+        { hp = 10, speed = 10, atk_backend = 10, def_backend = 10 },
         { upgrade_test_hp, upgrade_test_speed }
     ),
     LevelNode.new(3, "test_level_3_name", "test_level_3_desc", 300,
-        { hp = 10, speed = 10, backend_attack = 10, backend_defense = 10 },
+        { hp = 10, speed = 10, atk_backend = 10, def_backend = 10 },
         { upgrade_test_esp1, upgrade_test_esp2 }
     ),
     LevelNode.new(4, "test_level_4_name", "test_level_4_desc", 600,
-        { hp = 15, speed = 15, backend_attack = 15, backend_defense = 15 },
+        { hp = 15, speed = 15, atk_backend = 15, def_backend = 15 },
         { upgrade_test_passive_backend, upgrade_test_passive_system }
     ),
 })
@@ -88,23 +88,31 @@ local skill_compile = Skill.new(
 
 local skill_debug = Skill.new(
     "skill_test_debug", "skill_test_debug_desc",
-    LanguageTypes.BACKEND, 15, "attack"
+    LanguageTypes.SCRIPTING, 15, "attack"
 )
 
 local function newTestLanguage()
     local lang = ProgrammingLanguage.new({
         language_name = "TestLang",
-        languageType = LanguageTypes.BACKEND,
+        languageTypes = {
+            LanguageTypes.BACKEND,
+            LanguageTypes.SCRIPTING
+        },
         hp = 100,
         speed = 10,
-        typeAttack = 20,
-        typeDefense = 15,
+        typeAttributes = {
+            [LanguageTypes.BACKEND] = {
+                attack = 20,
+                defense = 15
+            },
+            [LanguageTypes.SCRIPTING] = {
+                attack = 18,
+                defense = 12
+            }
+        },
         levelTree = tree,
     })
 
-    lang:addSkill(skill_compile)
-    lang:addSkill(skill_debug)
-    return lang
 end
 
 return { new = newTestLanguage }

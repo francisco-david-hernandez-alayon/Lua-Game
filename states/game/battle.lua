@@ -44,6 +44,14 @@ function Battle.keypressed(key)
         return
     end
 
+    -- Block input while a message is displayed
+    if bc:hasMessages() then
+        if key == "return" or key == "e" then
+            bc:popMessage()
+        end
+        return
+    end
+
     -- Force language pick
     if bc.phase == PHASE.PICK_LANGUAGE then
         local pickable = getPickable()

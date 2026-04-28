@@ -215,4 +215,6 @@ function PlayerInventory.fromTable(data)
     return inv
 end
 
+-- TODO: SERIALIZE PROGRAMMING LANGUAGE
+
 return PlayerInventory

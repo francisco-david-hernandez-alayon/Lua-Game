@@ -6,7 +6,6 @@
 local function handle(eventId, controller)
     if eventId == "secondary_event_1" then
         print("[SECONDARY EVENT] secondary_event_1 triggered")
-        -- TODO: do something with game
 
     else
         return false

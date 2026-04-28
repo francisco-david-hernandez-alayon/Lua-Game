@@ -82,14 +82,27 @@ local tree = LevelTree.new({
 })
 
 local skill_compile = Skill.new(
-    "skill_test_compile", "skill_test_compile_desc",
-    LanguageTypes.BACKEND, 20, "attack"
+    "skill_test_compile",
+    "skill_test_compile_desc",
+    LanguageTypes.BACKEND,
+    { "attack" },
+    20,
+    nil,
+    nil,
+    90
 )
 
 local skill_debug = Skill.new(
-    "skill_test_debug", "skill_test_debug_desc",
-    LanguageTypes.SCRIPTING, 15, "attack"
+    "skill_test_debug",
+    "skill_test_debug_desc",
+    LanguageTypes.BACKEND,
+    { "attribute_effect" },
+    nil,
+    nil,
+    { atk_backend = 5 },
+    100
 )
+
 
 local function newTestLanguage()
     local lang = ProgrammingLanguage.new({
@@ -110,9 +123,14 @@ local function newTestLanguage()
                 defense = 12
             }
         },
+        skills = {
+            skill_compile,
+            skill_debug
+        },
         levelTree = tree,
     })
 
+    return lang
 end
 
 return { new = newTestLanguage }

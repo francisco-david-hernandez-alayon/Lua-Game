@@ -6,7 +6,7 @@
 local function handle(eventId, controller)
     if eventId == "main_event_1" then
         print("[MAIN EVENT] main_event_1 triggered")
-        -- TODO: do something with game
+
 
     else
         return false

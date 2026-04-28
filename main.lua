@@ -17,7 +17,8 @@ end
 -- Execute when game start
 function love.load()
     love.graphics.setNewFont("assets/fonts/PressStart2P-Regular.ttf", 8)
-
+    math.randomseed(os.time())
+    
     Settings.load()
     AudioManager.load()
     StateManager.switch("main_menu")

@@ -8,16 +8,30 @@ local BattleUI = {}
 
 local PHASE = BattleController.PHASE
 
--- ── Menu builders ─────────────────────────────────────────────────
+local INFO_PANEL_H = 220
+
+-- Menu builders.
 
 local function buildActionMenu()
     return { L.get("battle_attack"), L.get("battle_swap") }
 end
 
+local function getSkillLabel(skill)
+    if skill.damage then
+        return skill.nameKey .. " (" .. skill.damage .. ")"
+    end
+
+    if skill.heal then
+        return skill.nameKey .. " (+ " .. skill.heal .. ")"
+    end
+
+    return skill.nameKey
+end
+
 local function buildAttackMenu(bc)
     local labels = {}
     for _, skill in ipairs(bc.currentPlayerLanguage.currentSkills) do
-        table.insert(labels, skill.nameKey .. " (" .. skill.baseDamage .. ")")
+        table.insert(labels, getSkillLabel(skill))
     end
     table.insert(labels, L.get("battle_back"))
     return labels
@@ -29,7 +43,7 @@ local function buildSwapMenu(bc)
     for _, lang in ipairs(langs) do
         if lang ~= bc.currentPlayerLanguage then
             table.insert(labels, lang.language_name ..
-                " [" .. lang.currentBattle.currentHp .. "/" .. lang.attributes.maxHp .. "]")
+                " [" .. lang.currentBattle.currentHp .. "/" .. lang.attributes.hp .. "]")
         end
     end
     table.insert(labels, L.get("battle_back"))
@@ -42,7 +56,7 @@ local function buildPickMenu(bc)
     for _, lang in ipairs(langs) do
         if lang ~= bc.currentPlayerLanguage then
             table.insert(labels, lang.language_name ..
-                " [" .. lang.currentBattle.currentHp .. "/" .. lang.attributes.maxHp .. "]")
+                " [" .. lang.currentBattle.currentHp .. "/" .. lang.attributes.hp .. "]")
         end
     end
     return labels
@@ -56,19 +70,181 @@ local function getMenu(bc, menuMode)
     return {}
 end
 
--- Returns menu size (used by battle.lua for clamping selection)
+local function getSelectableLanguages(bc)
+    local langs = {}
+    for _, lang in ipairs(bc:getActivePlayerLanguages()) do
+        if lang ~= bc.currentPlayerLanguage then
+            table.insert(langs, lang)
+        end
+    end
+    return langs
+end
+
+local function getSelectedSkill(bc, selected, menuMode)
+    if menuMode ~= "attack" or not bc.currentPlayerLanguage then
+        return nil
+    end
+
+    local skills = bc.currentPlayerLanguage.currentSkills
+    if selected < 1 or selected > #skills then
+        return nil
+    end
+
+    return skills[selected]
+end
+
+local function getSelectedLanguage(bc, selected, menuMode)
+    if bc.phase ~= PHASE.PICK_LANGUAGE and menuMode ~= "swap" then
+        return nil
+    end
+
+    local langs = getSelectableLanguages(bc)
+    if selected < 1 or selected > #langs then
+        return nil
+    end
+
+    return langs[selected]
+end
+
+local function getCurrentStatsLines(lang)
+    local current = lang.currentBattle.currentAttributes
+    local lines = {
+        "HP: " .. lang.currentBattle.currentHp .. "/" .. lang.attributes.hp,
+        "Speed: " .. lang.currentBattle.currentSpeed .. "/" .. lang.attributes.speed,
+    }
+
+    local orderedStats = {
+        { "atk_backend", "ATK Backend" },
+        { "def_backend", "DEF Backend" },
+        { "atk_frontend", "ATK Frontend" },
+        { "def_frontend", "DEF Frontend" },
+        { "atk_system", "ATK System" },
+        { "def_system", "DEF System" },
+        { "atk_mobile", "ATK Mobile" },
+        { "def_mobile", "DEF Mobile" },
+        { "atk_scripting", "ATK Scripting" },
+        { "def_scripting", "DEF Scripting" },
+        { "atk_ai", "ATK AI" },
+        { "def_ai", "DEF AI" },
+        { "atk_game", "ATK Game" },
+        { "def_game", "DEF Game" },
+        { "atk_scientific", "ATK Scientific" },
+        { "def_scientific", "DEF Scientific" },
+    }
+
+    for _, statData in ipairs(orderedStats) do
+        local key = statData[1]
+        local label = statData[2]
+        local value = current[key]
+
+        if value ~= nil then
+            table.insert(lines, label .. ": " .. value)
+        end
+    end
+
+    return lines
+end
+
+local function drawWrappedLines(lines, x, y, width, lineHeight, maxLines)
+    local lineY = y
+    local drawn = 0
+
+    for _, line in ipairs(lines) do
+        local _, wrapped = love.graphics.getFont():getWrap(line, width)
+        for _, wrappedLine in ipairs(wrapped) do
+            if drawn >= maxLines then
+                return
+            end
+
+            love.graphics.print(wrappedLine, x, lineY)
+            lineY = lineY + lineHeight
+            drawn = drawn + 1
+        end
+    end
+end
+
+local function drawInfoPanel(bc, selected, menuMode, x, y, w, h)
+    love.graphics.setColor(0.1, 0.1, 0.1)
+    love.graphics.rectangle("fill", x, y, w, h)
+    love.graphics.setColor(0.3, 0.3, 0.3)
+    love.graphics.rectangle("line", x, y, w, h)
+
+    local contentX = x + 8
+    local contentY = y + 8
+    local contentW = w - 16
+    local lineH = 16
+
+    love.graphics.setColor(1, 1, 1)
+
+    local skill = getSelectedSkill(bc, selected, menuMode)
+    if skill then
+        local categories = table.concat(skill.skillCategories, ", ")
+        local lines = {
+            "Skill: " .. skill:getName(L),
+            "Type: " .. skill.skillType,
+            "Categories: " .. categories,
+            "Accuracy: " .. tostring(skill.accuracy or 100) .. "%",
+            skill.damage and ("Damage: " .. skill.damage) or nil,
+            skill.heal and ("Heal: " .. skill.heal) or nil,
+            "Description: " .. skill:getDesc(L),
+        }
+
+        local filtered = {}
+        for _, line in ipairs(lines) do
+            if line then
+                table.insert(filtered, line)
+            end
+        end
+
+        drawWrappedLines(filtered, contentX, contentY, contentW, lineH, 12)
+        return
+    end
+
+    local lang = getSelectedLanguage(bc, selected, menuMode)
+    if lang then
+        local lines = {
+            "Language: " .. lang.language_name,
+            "ID: " .. tostring(lang.language_id),
+        }
+
+        for _, statLine in ipairs(getCurrentStatsLines(lang)) do
+            table.insert(lines, statLine)
+        end
+
+        drawWrappedLines(lines, contentX, contentY, contentW, lineH, 12)
+        return
+    end
+
+    if bc.currentPlayerLanguage then
+        local langLines = {
+            "Language: " .. bc.currentPlayerLanguage.language_name,
+            "ID: " .. tostring(bc.currentPlayerLanguage.language_id),
+        }
+
+        for _, statLine in ipairs(getCurrentStatsLines(bc.currentPlayerLanguage)) do
+            table.insert(langLines, statLine)
+        end
+
+        drawWrappedLines(langLines, contentX, contentY, contentW, lineH, 12)
+    end
+end
+
 function BattleUI.getMenuSize(bc, menuMode)
+    if bc:hasMessages() then
+        return 0
+    end
+
     return #getMenu(bc, menuMode)
 end
 
-
 function BattleUI.draw(bc, selected, menuMode)
-    local sw    = love.graphics.getWidth()
-    local sh    = love.graphics.getHeight()
+    local sw = love.graphics.getWidth()
+    local sh = love.graphics.getHeight()
     local ARENA_W = math.floor(sw * 2 / 3)
-    local MENU_W  = sw - ARENA_W
-    local LOG_H   = 48
+    local MENU_W = sw - ARENA_W
+    local LOG_H = 64
     local ARENA_H = sh - LOG_H
+    local MENU_CONTENT_H = ARENA_H - INFO_PANEL_H
 
     love.graphics.setColor(0.08, 0.08, 0.08)
     love.graphics.rectangle("fill", 0, 0, sw, sh)
@@ -80,7 +256,7 @@ function BattleUI.draw(bc, selected, menuMode)
         local el = bc.currentEnemyLanguage
         love.graphics.setColor(0.8, 0.2, 0.2)
         love.graphics.print(
-            el.language_name .. "  [" .. el.currentBattle.currentHp .. "/" .. el.attributes.maxHp .. "]",
+            el.language_name .. "  [" .. el.currentBattle.currentHp .. "/" .. el.attributes.hp .. "]",
             16, 16)
         love.graphics.setColor(0.4, 0.4, 0.4)
         love.graphics.print(bc.programmerName, 16, 36)
@@ -90,7 +266,7 @@ function BattleUI.draw(bc, selected, menuMode)
         local pl = bc.currentPlayerLanguage
         love.graphics.setColor(0.2, 0.6, 1)
         love.graphics.print(
-            pl.language_name .. "  [" .. pl.currentBattle.currentHp .. "/" .. pl.attributes.maxHp .. "]",
+            pl.language_name .. "  [" .. pl.currentBattle.currentHp .. "/" .. pl.attributes.hp .. "]",
             16, ARENA_H - 48)
         love.graphics.setColor(0.4, 0.4, 0.4)
         love.graphics.print(L.get("battle_you"), 16, ARENA_H - 28)
@@ -102,10 +278,11 @@ function BattleUI.draw(bc, selected, menuMode)
     love.graphics.rectangle("line", ARENA_W, 0, MENU_W, ARENA_H)
 
     if bc.phase == PHASE.BATTLE_OVER then
-        local msg       = bc.winner == "player" and L.get("battle_win") or L.get("battle_lose")
+        local msg = bc.winner == "player" and L.get("battle_win") or L.get("battle_lose")
         local remaining = bc.winner == "player"
             and #bc:getActivePlayerLanguages()
-            or  #bc:getActiveEnemyLanguages()
+            or #bc:getActiveEnemyLanguages()
+
         love.graphics.setColor(1, 1, 0)
         love.graphics.print(msg, ARENA_W + 8, 16)
         love.graphics.setColor(1, 1, 1)
@@ -113,21 +290,33 @@ function BattleUI.draw(bc, selected, menuMode)
         love.graphics.setColor(0.5, 0.5, 0.5)
         love.graphics.print("[E] " .. L.get("battle_exit"), ARENA_W + 8, 56)
     else
-        love.graphics.setColor(0.6, 0.6, 0.6)
-        if bc.phase == PHASE.PICK_LANGUAGE then
-            love.graphics.setColor(1, 0.6, 0)
-            love.graphics.print(L.get("battle_pick_language"), ARENA_W + 8, 8)
-        else
-            local title = menuMode == "action" and L.get("battle_menu_action")
-                       or menuMode == "attack" and L.get("battle_menu_attack")
-                       or L.get("battle_menu_swap")
-            love.graphics.print(title, ARENA_W + 8, 8)
-        end
+        if not bc:hasMessages() then
+            love.graphics.setColor(0.6, 0.6, 0.6)
+            if bc.phase == PHASE.PICK_LANGUAGE then
+                love.graphics.setColor(1, 0.6, 0)
+                love.graphics.print(L.get("battle_pick_language"), ARENA_W + 8, 8)
+            else
+                local title = menuMode == "action" and L.get("battle_menu_action")
+                    or menuMode == "attack" and L.get("battle_menu_attack")
+                    or L.get("battle_menu_swap")
+                love.graphics.print(title, ARENA_W + 8, 8)
+            end
 
-        local menu = getMenu(bc, menuMode)
-        for i, item in ipairs(menu) do
-            love.graphics.setColor(i == selected and 1 or 1, i == selected and 1 or 1, i == selected and 0 or 1)
-            love.graphics.print("> " .. item, ARENA_W + 8, 28 + (i - 1) * 20)
+            local menu = getMenu(bc, menuMode)
+            for i, item in ipairs(menu) do
+                love.graphics.setColor(i == selected and 1 or 1, i == selected and 1 or 1, i == selected and 0 or 1)
+                love.graphics.print("> " .. item, ARENA_W + 8, 28 + (i - 1) * 20)
+            end
+
+            drawInfoPanel(
+                bc,
+                selected,
+                menuMode,
+                ARENA_W + 4,
+                MENU_CONTENT_H,
+                MENU_W - 8,
+                INFO_PANEL_H - 4
+            )
         end
     end
 
@@ -136,7 +325,16 @@ function BattleUI.draw(bc, selected, menuMode)
     love.graphics.setColor(0.3, 0.3, 0.3)
     love.graphics.rectangle("line", 0, ARENA_H, sw, LOG_H)
     love.graphics.setColor(1, 1, 1)
-    love.graphics.print(bc:getLastLog() or "", 8, ARENA_H + 8)
+
+    if bc:hasMessages() then
+        local message = bc.messageQueue[1] or ""
+        drawWrappedLines({ message }, 8, ARENA_H + 6, sw - 120, 16, 2)
+
+        love.graphics.setColor(1, 1, 0)
+        love.graphics.print("[ENTER] Continue", sw - 110, ARENA_H + 22)
+    else
+        love.graphics.print(bc.messageQueue[1] or "", 8, ARENA_H + 8)
+    end
 end
 
 return BattleUI

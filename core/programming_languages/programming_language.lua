@@ -38,6 +38,7 @@
 
 local LevelTree = require("core.programming_languages.level_tree")
 local LanguageTypes = require("core.programming_languages.language_types")
+local IdGenerator = require("utils.id_generator")
 
 local MAX_CURRENT_SKILLS = 4
 local DEFAULT_MAX_ITEMS = 2
@@ -136,6 +137,7 @@ local function isValidLanguageTypes(languageTypes)
     return true
 end
 
+
 function ProgrammingLanguage.new(data)
     assert(type(data.language_name) == "string", "language_name must be a string")
     assert(isValidLanguageTypes(data.languageTypes), "languageTypes must be a non-empty list of valid LanguageTypes")
@@ -154,6 +156,7 @@ function ProgrammingLanguage.new(data)
 
     local self = setmetatable({
         -- Identity
+        language_id = IdGenerator.uuid(),
         language_name = data.language_name,
         languageTypes = data.languageTypes,
 
@@ -181,6 +184,13 @@ function ProgrammingLanguage.new(data)
         equippedItems = {},
         maxEquippedItems = data.maxEquippedItems or DEFAULT_MAX_ITEMS,
     }, ProgrammingLanguage)
+
+    -- Initial current skills
+    if data.skills then
+        for _, skill in ipairs(data.skills) do
+            self:addSkill(skill)
+        end
+    end
 
     return self
 end
@@ -211,29 +221,43 @@ function ProgrammingLanguage:getCurrentTypeAttack(languageType)
     return self.currentBattle.currentAttributes[ts.attack] or 0
 end
 
--- Returns the current battle defense stat for a given type.
-function ProgrammingLanguage:getCurrentTypeDefense(languageType)
-    local ts = TYPE_STATS[languageType]
-    if not ts then
+-- Returns the average current battle defense across all available defense stats.
+function ProgrammingLanguage:getCurrentAverageDefense()
+    local totalDefense = 0
+    local defenseCount = 0
+
+    for _, typeStats in pairs(TYPE_STATS) do
+        local defenseValue = self.currentBattle.currentAttributes[typeStats.defense]
+        if defenseValue ~= nil then
+            totalDefense = totalDefense + defenseValue
+            defenseCount = defenseCount + 1
+        end
+    end
+
+    if defenseCount == 0 then
         return 0
     end
-    return self.currentBattle.currentAttributes[ts.defense] or 0
+
+    return totalDefense / defenseCount
 end
 
--- Takes damage using current battle defense values.
+
+-- Takes damage using the average current battle defense.
 -- Returns actual damage dealt.
-function ProgrammingLanguage:takeDamage(amount, skillType)
-    local defenseValue = self:getCurrentTypeDefense(skillType)
-    local actual = math.max(1, math.floor(amount - defenseValue * 0.5))
+function ProgrammingLanguage:takeDamage(amount)
+    print("DEBUG TAKE DAMAGE: " .. amount)
+    local averageDefense = self:getCurrentAverageDefense()
+    local actual = math.max(1, math.floor(amount - averageDefense * 0.5))
 
     self.currentBattle.currentHp = math.max(0, self.currentBattle.currentHp - actual)
     return actual
 end
 
+
 -- Calculates damage using current battle attack values.
 function ProgrammingLanguage:calculateDamage(skill)
     local atkStat = self:getCurrentTypeAttack(skill.skillType)
-    return math.floor(skill.baseDamage + atkStat * 0.5)
+    return math.floor(skill.damage + atkStat * 0.5)
 end
 
 function ProgrammingLanguage:addSkill(skill)

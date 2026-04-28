@@ -109,6 +109,7 @@ end
 local function getCurrentStatsLines(lang)
     local current = lang.currentBattle.currentAttributes
     local lines = {
+        "Types: " .. table.concat(lang.languageTypes, ", "),
         "HP: " .. lang.currentBattle.currentHp .. "/" .. lang.attributes.hp,
         "Speed: " .. lang.currentBattle.currentSpeed .. "/" .. lang.attributes.speed,
     }

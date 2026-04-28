@@ -36,7 +36,6 @@
 --   equippedItems
 --   maxEquippedItems
 
-local LevelTree = require("core.programming_languages.level_tree")
 local LanguageTypes = require("core.programming_languages.language_types")
 local IdGenerator = require("utils.id_generator")
 
@@ -59,6 +58,7 @@ local ProgrammingLanguage = {}
 ProgrammingLanguage.__index = ProgrammingLanguage
 ProgrammingLanguage.TYPE_STATS = TYPE_STATS
 
+-- BUILD ATRIBUTES METHODS
 -- Returns a full stat table with all supported type stats.
 local function createEmptyAttributes(hp, speed)
     return {
@@ -109,7 +109,7 @@ local function buildAttributes(languageTypes, hp, speed, typeAttributes)
 end
 
 -- Creates the battle snapshot from the permanent attributes.
-local function buildCurrentBattle(attributes)
+local function buildCurrentBattleAttributes(attributes)
     local currentAttributes = {}
 
     for key, value in pairs(attributes) do
@@ -117,7 +117,7 @@ local function buildCurrentBattle(attributes)
     end
 
     return {
-        currentHp = attributes.hp,
+        currentHp = attributes.hp,  
         currentSpeed = attributes.speed,
         currentAttributes = currentAttributes,
     }
@@ -157,6 +157,8 @@ function ProgrammingLanguage.new(data)
     local self = setmetatable({
         -- Identity
         language_id = IdGenerator.uuid(),
+        templateId = data.templateId or nil, -- TO RESTORE LENGUAGE WHEN GAME SAVED
+        spritePath = data.spritePath or nil,
         language_name = data.language_name,
         languageTypes = data.languageTypes,
 
@@ -164,7 +166,7 @@ function ProgrammingLanguage.new(data)
         attributes = baseAttributes,
 
         -- Battle-only stats
-        currentBattle = buildCurrentBattle(baseAttributes),
+        currentBattle = buildCurrentBattleAttributes(baseAttributes),
 
         -- Progression
         level = data.level or 1,
@@ -195,9 +197,12 @@ function ProgrammingLanguage.new(data)
     return self
 end
 
-function ProgrammingLanguage:resetBattleState()
-    self.currentBattle = buildCurrentBattle(self.attributes)
+function ProgrammingLanguage:resetLanguageAfterBattle()
+    local currentHp = self.currentBattle.currentHp
+    self.currentBattle = buildCurrentBattleAttributes(self.attributes)
+    self.currentBattle.currentHp = currentHp
 end
+
 
 function ProgrammingLanguage:isActive()
     return self.currentBattle.currentHp > 0
@@ -209,7 +214,6 @@ end
 
 function ProgrammingLanguage:setObsolete()
     self.currentBattle.currentHp = 0
-    print("[ProgrammingLanguage] " .. self.language_name .. " is OBSOLETE")
 end
 
 -- Returns the current battle attack stat for a given type.
@@ -245,7 +249,6 @@ end
 -- Takes damage using the average current battle defense.
 -- Returns actual damage dealt.
 function ProgrammingLanguage:takeDamage(amount)
-    print("DEBUG TAKE DAMAGE: " .. amount)
     local averageDefense = self:getCurrentAverageDefense()
     local actual = math.max(1, math.floor(amount - averageDefense * 0.5))
 
@@ -349,6 +352,8 @@ function ProgrammingLanguage:addExp(amount)
     return false, nil
 end
 
+
+--- SAVE PROGRAMMING LANGUAGE
 function ProgrammingLanguage:applyUpgrade(upgradeIndex)
     if not self.levelTree then
         return nil, "no_level_tree"
@@ -369,5 +374,66 @@ function ProgrammingLanguage:applyUpgrade(upgradeIndex)
     upgrade:apply(self)
     return true, "upgrade_applied"
 end
+
+
+function ProgrammingLanguage:toTable()
+    local currentSkillIndexes = {}
+
+    for _, currentSkill in ipairs(self.currentSkills) do
+        for i, skill in ipairs(self.skills) do
+            if skill == currentSkill then
+                table.insert(currentSkillIndexes, i)
+                break
+            end
+        end
+    end
+
+    return {
+        language_id = self.language_id,
+        templateId = self.templateId,
+        spritePath = self.spritePath,
+        language_name = self.language_name,
+        languageTypes = self.languageTypes,
+        attributes = self.attributes,
+        currentBattle = self.currentBattle,
+        level = self.level,
+        exp = self.exp,
+        chosenUpgrades = self.chosenUpgrades,
+        specialization = self.specialization,
+        currentSkillIndexes = currentSkillIndexes,
+        maxEquippedItems = self.maxEquippedItems,
+    }
+end
+
+function ProgrammingLanguage.fromTable(data)
+    local LanguagesRegistry = require("core.programming_languages.languages_registry")  -- Must be here to avoid loop error loading module
+    local lang = LanguagesRegistry.create(data.templateId)
+
+    lang.language_id = data.language_id
+    lang.templateId = data.templateId
+    lang.spritePath = data.spritePath or lang.spritePath
+    lang.language_name = data.language_name
+    lang.languageTypes = data.languageTypes
+    lang.attributes = data.attributes
+    lang.currentBattle = data.currentBattle
+    lang.level = data.level
+    lang.exp = data.exp
+    lang.chosenUpgrades = data.chosenUpgrades or {}
+    lang.specialization = data.specialization
+    lang.maxEquippedItems = data.maxEquippedItems or lang.maxEquippedItems
+
+    if data.currentSkillIndexes then
+        lang.currentSkills = {}
+        for _, index in ipairs(data.currentSkillIndexes) do
+            if lang.skills[index] then
+                table.insert(lang.currentSkills, lang.skills[index])
+            end
+        end
+    end
+
+    return lang
+end
+
+
 
 return ProgrammingLanguage

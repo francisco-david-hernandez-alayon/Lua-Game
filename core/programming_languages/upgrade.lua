@@ -63,4 +63,31 @@ function Upgrade:apply(lang)
     print("[Upgrade] applied: " .. self.id .. " to " .. lang.language_name)
 end
 
+
+function Upgrade:toTable()
+    local skills = {}
+    local passives = {}
+
+    if self.skills then
+        for _, skill in ipairs(self.skills) do
+            table.insert(skills, skill:toTable())
+        end
+    end
+
+    if self.passives then
+        for _, passive in ipairs(self.passives) do
+            table.insert(passives, passive.id)
+        end
+    end
+
+    return {
+        id = self.id,
+        specializationId = self.specializationId,
+        skills = #skills > 0 and skills or nil,
+        passives = #passives > 0 and passives or nil,
+        attributeBonus = self.attributeBonus,
+    }
+end
+
+
 return Upgrade

@@ -14,6 +14,10 @@ local EventController     = require("core.game.controller.event_controller")
 local InventoryController = require("core.game.controller.inventory_controller")
 local MissionController   = require("core.game.controller.mission_controller")
 
+local Battle = require("core.battle.battle")
+local BattleController = require("core.battle.battle_controller")
+
+
 local GameController = {}
 local currentGame    = nil
 
@@ -183,6 +187,39 @@ function GameController.setDoorTarget(doorId)
     currentGame.doorTargetId = doorId
     print("[GameController] door target set:", doorId)
 end
+
+
+-- BATTLE
+function GameController.startBattle(sm, programmerName, enemyLanguages, returnState)
+    requireSession()
+
+    -- Get languages
+    local playerLanguages = currentGame.inventory.programmingLanguageSlots
+    assert(#playerLanguages > 0, "[GameController] player has no equipped languages")
+    assert(type(enemyLanguages) == "table" and #enemyLanguages > 0, "[GameController] enemyLanguages must be a non-empty table")
+
+    -- Check all languageSlot are alive
+    -- TODO: ADD SOME USER MESSAGE
+    local hasAliveLanguage = false
+    for _, lang in ipairs(playerLanguages) do
+        if lang.currentBattle and lang.currentBattle.currentHp and lang.currentBattle.currentHp > 0 then
+            hasAliveLanguage = true
+            break
+        end
+    end
+
+    if not hasAliveLanguage then
+        print("[GameController] battle not started: player has no alive languages")
+        return nil, "game_no_alive_languages"
+    end
+
+    -- Start battle
+    local battle = Battle.new(programmerName, playerLanguages, enemyLanguages, returnState)
+    local bc = BattleController.new(battle)
+    sm.switch("battle", bc, returnState)
+end
+
+
 
 
 -- WORLD DATA

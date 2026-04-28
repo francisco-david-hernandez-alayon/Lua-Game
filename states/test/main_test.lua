@@ -5,14 +5,17 @@ local Game                    = require("core.game.game")
 local SaveSystem              = require("core.save_system")
 local Item                    = require("core.inventory.item")
 local MissionItem             = require("core.inventory.mission_item")
-local ProgrammingLanguageSlot = require("core.inventory.programming_language_slot")
+
 
 local MainTest = {}
 
 local TEST_SLOT = 3
 
 local function buildTestInventory(inventory)
-    inventory:addProgrammingLanguageSlot(ProgrammingLanguageSlot.new("c++"))
+    local TestLanguage = require("core.programming_languages.languages.test_language")
+    inventory:addProgrammingLanguageSlot(TestLanguage.new())
+    inventory:addProgrammingLanguageSlot(TestLanguage.new())
+
     local itemA = Item.new("test_item_a", "test_item_a_desc", 1)
     inventory:addItem(itemA)
     local itemB = Item.new("test_item_b", "test_item_b_desc", 10)

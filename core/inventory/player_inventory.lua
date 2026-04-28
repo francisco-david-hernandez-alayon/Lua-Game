@@ -1,7 +1,7 @@
 -- core/inventory/player_inventory.lua
 local Item                    = require("core.inventory.item")
 local MissionItem             = require("core.inventory.mission_item")
-local ProgrammingLanguageSlot = require("core.inventory.programming_language_slot")
+local ProgrammingLanguage = require("core.programming_languages.programming_language")
 
 local MAX_ITEMS          = 20
 local MAX_LANGUAGE_SLOTS = 6
@@ -194,8 +194,15 @@ function PlayerInventory:toTable()
     local items, missionItems, slots, learnt = {}, {}, {}, {}
     for _, v in ipairs(self.items)                       do table.insert(items,  v:toTable()) end
     for _, v in ipairs(self.missionItems)                do table.insert(missionItems, v:toTable()) end
-    for _, v in ipairs(self.programmingLanguageSlots)    do table.insert(slots,  v:toTable()) end
-    for _, v in ipairs(self.programmingLanguagesLearnt)  do table.insert(learnt, v:toTable()) end
+
+    for _, v in ipairs(self.programmingLanguageSlots) do
+        table.insert(slots, v:toTable())
+    end
+
+    for _, v in ipairs(self.programmingLanguagesLearnt) do
+        table.insert(learnt, v:toTable())
+    end
+
     return {
         bytes                      = self.bytes,
         items                      = items,
@@ -210,8 +217,15 @@ function PlayerInventory.fromTable(data)
     inv.bytes = data.bytes or 0
     for _, d in ipairs(data.items                      or {}) do table.insert(inv.items,                      Item.fromTable(d))                    end
     for _, d in ipairs(data.missionItems               or {}) do table.insert(inv.missionItems,               MissionItem.fromTable(d))             end
-    for _, d in ipairs(data.programmingLanguageSlots   or {}) do table.insert(inv.programmingLanguageSlots,   ProgrammingLanguageSlot.fromTable(d)) end
-    for _, d in ipairs(data.programmingLanguagesLearnt or {}) do table.insert(inv.programmingLanguagesLearnt, ProgrammingLanguageSlot.fromTable(d)) end
+    
+    for _, d in ipairs(data.programmingLanguageSlots or {}) do
+        table.insert(inv.programmingLanguageSlots, ProgrammingLanguage.fromTable(d))
+    end
+
+    for _, d in ipairs(data.programmingLanguagesLearnt or {}) do
+        table.insert(inv.programmingLanguagesLearnt, ProgrammingLanguage.fromTable(d))
+    end
+
     return inv
 end
 

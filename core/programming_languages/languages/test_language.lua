@@ -82,6 +82,7 @@ local tree = LevelTree.new({
 })
 
 local skill_compile = Skill.new(
+    "skill_test1_id",
     "skill_test_compile",
     "skill_test_compile_desc",
     LanguageTypes.BACKEND,
@@ -93,6 +94,7 @@ local skill_compile = Skill.new(
 )
 
 local skill_debug = Skill.new(
+    "skill_test2_id",
     "skill_test_debug",
     "skill_test_debug_desc",
     LanguageTypes.BACKEND,
@@ -105,7 +107,11 @@ local skill_debug = Skill.new(
 
 
 local function newTestLanguage()
+    local ID = "test_language"
+
     local lang = ProgrammingLanguage.new({
+        templateId = ID,
+        spritePath = "assets/sprites/test/test-lang1.png",
         language_name = "TestLang",
         languageTypes = {
             LanguageTypes.BACKEND,

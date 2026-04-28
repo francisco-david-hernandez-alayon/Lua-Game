@@ -1,17 +1,66 @@
 -- ui/ui_battle.lua
 -- Handles all drawing for the battle state.
+local anim8               = require("libs.anim8")
+local L                   = require("core.localization.localization")
+local BattleController    = require("core.battle.battle_controller")
 
-local L                = require("core.localization.localization")
-local BattleController = require("core.battle.battle_controller")
+local BattleUI            = {}
 
-local BattleUI = {}
+-- GENERAL VARIABLES
+local PHASE               = BattleController.PHASE
 
-local PHASE = BattleController.PHASE
+local INFO_PANEL_H        = 220
 
-local INFO_PANEL_H = 220
 
--- Menu builders.
+-- SPRITES
+local spriteCache = {}
 
+local function getLanguageSpriteData(path)
+    if not path then
+        return nil
+    end
+
+    if not spriteCache[path] then
+        local image = love.graphics.newImage(path)
+        local width = image:getWidth()
+        local height = image:getHeight()
+
+        if width < 128 or height < 64 then
+            print("[BattleUI] Invalid language sprite size for: " .. path ..
+                " | got " .. width .. "x" .. height .. " | expected at least 128x64")
+            return nil
+        end
+
+        if width % 64 ~= 0 or height % 64 ~= 0 then
+            print("[BattleUI] Warning: language sprite is not aligned to 64px grid: " .. path ..
+                " | got " .. width .. "x" .. height)
+        end
+
+        local grid = anim8.newGrid(64, 64, width, height)
+        local frontFrames = grid(1, 1)
+        local backFrames = grid(2, 1)
+
+        if not frontFrames[1] or not backFrames[1] then
+            print("[BattleUI] Missing front/back frames in language sprite: " .. path)
+            return nil
+        end
+
+        print("[BattleUI] Loaded language sprite: " .. path .. " | " .. width .. "x" .. height)
+
+        spriteCache[path] = {
+            image = image,
+            frontQuad = frontFrames[1],
+            backQuad = backFrames[1],
+        }
+    end
+
+    return spriteCache[path]
+end
+
+
+
+
+-- Menu builders
 local function buildActionMenu()
     return { L.get("battle_attack"), L.get("battle_swap") }
 end
@@ -115,20 +164,20 @@ local function getCurrentStatsLines(lang)
     }
 
     local orderedStats = {
-        { "atk_backend", "ATK Backend" },
-        { "def_backend", "DEF Backend" },
-        { "atk_frontend", "ATK Frontend" },
-        { "def_frontend", "DEF Frontend" },
-        { "atk_system", "ATK System" },
-        { "def_system", "DEF System" },
-        { "atk_mobile", "ATK Mobile" },
-        { "def_mobile", "DEF Mobile" },
-        { "atk_scripting", "ATK Scripting" },
-        { "def_scripting", "DEF Scripting" },
-        { "atk_ai", "ATK AI" },
-        { "def_ai", "DEF AI" },
-        { "atk_game", "ATK Game" },
-        { "def_game", "DEF Game" },
+        { "atk_backend",    "ATK Backend" },
+        { "def_backend",    "DEF Backend" },
+        { "atk_frontend",   "ATK Frontend" },
+        { "def_frontend",   "DEF Frontend" },
+        { "atk_system",     "ATK System" },
+        { "def_system",     "DEF System" },
+        { "atk_mobile",     "ATK Mobile" },
+        { "def_mobile",     "DEF Mobile" },
+        { "atk_scripting",  "ATK Scripting" },
+        { "def_scripting",  "DEF Scripting" },
+        { "atk_ai",         "ATK AI" },
+        { "def_ai",         "DEF AI" },
+        { "atk_game",       "ATK Game" },
+        { "def_game",       "DEF Game" },
         { "atk_scientific", "ATK Scientific" },
         { "def_scientific", "DEF Scientific" },
     }
@@ -241,11 +290,24 @@ end
 function BattleUI.draw(bc, selected, menuMode)
     local sw = love.graphics.getWidth()
     local sh = love.graphics.getHeight()
+
+    -- DRAW VARIABLES
     local ARENA_W = math.floor(sw * 2 / 3)
     local MENU_W = sw - ARENA_W
     local LOG_H = 64
     local ARENA_H = sh - LOG_H
     local MENU_CONTENT_H = ARENA_H - INFO_PANEL_H
+    
+    local ENEMY_SPRITE_SCALE  = 2.5
+    local PLAYER_SPRITE_SCALE = 2.5
+
+    local enemySpriteX        = ARENA_W - 220
+    local enemySpriteY        = 80
+
+    local playerSpriteX       = 120
+    local playerSpriteY       = ARENA_H - 240
+
+
 
     love.graphics.setColor(0.08, 0.08, 0.08)
     love.graphics.rectangle("fill", 0, 0, sw, sh)
@@ -255,23 +317,55 @@ function BattleUI.draw(bc, selected, menuMode)
 
     if bc.currentEnemyLanguage then
         local el = bc.currentEnemyLanguage
+        local spriteData = getLanguageSpriteData(el.spritePath)
+
         love.graphics.setColor(0.8, 0.2, 0.2)
         love.graphics.print(
             el.language_name .. "  [" .. el.currentBattle.currentHp .. "/" .. el.attributes.hp .. "]",
             16, 16)
         love.graphics.setColor(0.4, 0.4, 0.4)
         love.graphics.print(bc.programmerName, 16, 36)
+
+        if spriteData then
+            love.graphics.setColor(1, 1, 1)
+            love.graphics.draw(
+                spriteData.image,
+                spriteData.frontQuad,
+                enemySpriteX,
+                enemySpriteY,
+                0,
+                ENEMY_SPRITE_SCALE,
+                ENEMY_SPRITE_SCALE
+            )
+        end
     end
+
 
     if bc.currentPlayerLanguage then
         local pl = bc.currentPlayerLanguage
+        local spriteData = getLanguageSpriteData(pl.spritePath)
+
         love.graphics.setColor(0.2, 0.6, 1)
         love.graphics.print(
             pl.language_name .. "  [" .. pl.currentBattle.currentHp .. "/" .. pl.attributes.hp .. "]",
             16, ARENA_H - 48)
         love.graphics.setColor(0.4, 0.4, 0.4)
         love.graphics.print(L.get("battle_you"), 16, ARENA_H - 28)
+
+        if spriteData then
+            love.graphics.setColor(1, 1, 1)
+            love.graphics.draw(
+                spriteData.image,
+                spriteData.backQuad,
+                playerSpriteX,
+                playerSpriteY,
+                0,
+                PLAYER_SPRITE_SCALE,
+                PLAYER_SPRITE_SCALE
+            )
+        end
     end
+
 
     love.graphics.setColor(0.15, 0.15, 0.15)
     love.graphics.rectangle("fill", ARENA_W, 0, MENU_W, ARENA_H)

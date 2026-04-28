@@ -40,9 +40,17 @@ end
 
 function Battle.keypressed(key)
     if bc.phase == PHASE.BATTLE_OVER then
-        if key == "return" or key == "e" then sm.switch(returnState) end
+        if key == "return" or key == "e" then
+            -- Reset player languages stats after the battle
+            for _, lang in ipairs(bc.playerLanguages) do
+                lang:resetLanguageAfterBattle()
+            end
+
+            sm.switch(returnState)
+        end
         return
     end
+
 
     -- Block input while a message is displayed
     if bc:hasMessages() then

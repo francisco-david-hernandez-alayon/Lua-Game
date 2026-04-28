@@ -7,7 +7,7 @@ local UIController     = require("ui.ui_game_controller")
 local GameController = require("core.game.controller.game_controller")
 local S = require("core.state_system.states_names")
 local BattleController = require("core.battle.battle_controller")
-local ProgrammingLanguage = require("core.programming_languages.programming_language")
+
 
 local MapTest = {}
 local STATENAME = S.test.map_test
@@ -90,9 +90,17 @@ function MapTest.keypressed(key)
 
     -- BATTLE TESTING
     if key == "c" then
-        local bc = buildTestBattle()
-        MapTest.sm.switch("battle", bc, "map_test")
+        local TestLanguage = require("core.programming_languages.languages.test_language")
+        local enemyLanguages = { TestLanguage.new(), TestLanguage.new() }
+
+        GameController.startBattle(
+            MapTest.sm,
+            "EnemyProgrammer",
+            enemyLanguages,
+            "map_test"
+        )
     end
+
 
     if not UIController.isMenuOpen() then
         if key == "escape" then
@@ -131,7 +139,7 @@ function MapTest.draw()
         Camera.drawDebug(MapTest.cam, MapTest.world)
     end
     love.graphics.setColor(1, 1, 1)
-    love.graphics.print("[F1] Toggle collision debug", 8, 8)
+    love.graphics.print("[F1] Toggle collision debug, [G] to save, [C] to combat", 8, 8)
 end
 
 return MapTest

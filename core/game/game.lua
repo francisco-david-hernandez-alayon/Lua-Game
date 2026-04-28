@@ -18,9 +18,8 @@ function Game.new(data)
     self.created_at = data.created_at or os.time()
     self.last_save  = data.last_save  or os.time()
     self.slot       = data.slot       or 1
-    --TODO: ADD EXPERIENCE SYSTEM
 
-    -- Player position
+    -- GamePlay data
     self.gameState    = data.gameState
     self.playerX      = data.playerX      or nil
     self.playerY      = data.playerY      or nil

@@ -31,4 +31,16 @@ function LevelTree:getExpRequired(currentLevel)
     return next and next.expRequired or nil
 end
 
+function LevelTree:toTable()
+    local levels = {}
+    for _, level in ipairs(self.levels) do
+        table.insert(levels, level:toTable())
+    end
+
+    return {
+        levels = levels,
+    }
+end
+
+
 return LevelTree

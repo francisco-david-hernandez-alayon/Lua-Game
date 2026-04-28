@@ -137,7 +137,7 @@ function InventoryState.draw()
         else
             for _, slot in ipairs(inv.programmingLanguageSlots) do
                 love.graphics.setColor(0.2, 1, 0.4)
-                love.graphics.print("[ " .. slot.languageId .. " ]", 24, y)
+                love.graphics.print("[ " .. slot.language_id .. " | " .. slot.language_name .. ": " .. slot.currentBattle.currentHp .. "/" .. slot.attributes.hp .. "hp ]", 24, y)
                 y = y + PAD
             end
         end

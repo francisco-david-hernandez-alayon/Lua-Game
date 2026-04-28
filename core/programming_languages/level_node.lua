@@ -29,4 +29,21 @@ function LevelNode.new(levelNumber, nameKey, descKey, expRequired, attributeBonu
     }, LevelNode)
 end
 
+function LevelNode:toTable()
+    local upgrades = {}
+    for _, upgrade in ipairs(self.upgrades) do
+        table.insert(upgrades, upgrade:toTable())
+    end
+
+    return {
+        levelNumber = self.levelNumber,
+        nameKey = self.nameKey,
+        descKey = self.descKey,
+        expRequired = self.expRequired,
+        attributeBonus = self.attributeBonus,
+        upgrades = upgrades,
+    }
+end
+
+
 return LevelNode

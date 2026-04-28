@@ -2,6 +2,7 @@
 --
 -- A skill used in battle.
 -- ATTRIBUTES:
+--   id:                 unique string identifier
 --   nameKey:            localization key for display name
 --   descKey:            localization key for description
 --   skillType:          one of LanguageTypes
@@ -52,7 +53,8 @@ local function isValidAccuracy(accuracy)
     return type(accuracy) == "number" and accuracy >= 0 and accuracy <= 100
 end
 
-function Skill.new(nameKey, descKey, skillType, skillCategories, damage, heal, modifiedAttributes, accuracy)
+function Skill.new(id, nameKey, descKey, skillType, skillCategories, damage, heal, modifiedAttributes, accuracy)
+    assert(type(id) == "string", "id must be a string")
     assert(type(nameKey) == "string", "nameKey must be a string")
     assert(type(descKey) == "string", "descKey must be a string")
     assert(VALID_TYPES[skillType], "skillType must be a valid LanguageType")
@@ -63,6 +65,7 @@ function Skill.new(nameKey, descKey, skillType, skillCategories, damage, heal, m
     assert(isValidAccuracy(accuracy), "accuracy must be a number between 0 and 100")
 
     return setmetatable({
+        id = id,
         nameKey = nameKey,
         descKey = descKey,
         skillType = skillType,
@@ -91,5 +94,20 @@ end
 function Skill:getDesc(L)
     return L.get(self.descKey)
 end
+
+function Skill:toTable()
+    return {
+        id = self.id,
+        nameKey = self.nameKey,
+        descKey = self.descKey,
+        skillType = self.skillType,
+        skillCategories = self.skillCategories,
+        damage = self.damage,
+        heal = self.heal,
+        modifiedAttributes = self.modifiedAttributes,
+        accuracy = self.accuracy,
+    }
+end
+
 
 return Skill

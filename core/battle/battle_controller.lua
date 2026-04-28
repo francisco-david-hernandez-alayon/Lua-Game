@@ -23,29 +23,39 @@ local PHASE = {
 }
 BattleController.PHASE = PHASE
 
-function BattleController.new(programmerName, playerLanguages, enemyLanguages)
-    assert(type(programmerName) == "string", "programmerName must be a string")
-    assert(#playerLanguages >= 1, "player must have at least 1 language")
-    assert(#enemyLanguages >= 1, "enemy must have at least 1 language")
+function BattleController.new(battle)
+    assert(battle, "battle is required")
+    assert(type(battle.programmerName) == "string", "battle.programmerName must be a string")
+    assert(#battle.playerLanguages >= 1, "player must have at least 1 language")
+    assert(#battle.enemyLanguages >= 1, "enemy must have at least 1 language")
 
     local self = setmetatable({
-        programmerName        = programmerName,
-        playerLanguages       = playerLanguages,
-        enemyLanguages        = enemyLanguages,
+        battle = battle,
+        programmerName = battle.programmerName,
+        playerLanguages = battle.playerLanguages,
+        enemyLanguages = battle.enemyLanguages,
         currentPlayerLanguage = nil,
-        currentEnemyLanguage  = nil,
-        phase                 = PHASE.PICK_LANGUAGE,
-        pendingPlayerSkill    = nil,
-        pendingEnemySkill     = nil,
-        winner                = nil,
-        battleLog             = {},
-        messageQueue          = {},
+        currentEnemyLanguage = nil,
+        phase = PHASE.PICK_LANGUAGE,
+        pendingPlayerSkill = nil,
+        pendingEnemySkill = nil,
+        winner = nil,
+        battleLog = {},
+        messageQueue = {},
     }, BattleController)
 
-    self.currentEnemyLanguage = BattleAI.chooseLanguage(enemyLanguages)
+    self.currentEnemyLanguage = BattleAI.chooseLanguage(self.enemyLanguages)
 
     return self
 end
+
+
+function BattleController:finish(sm)
+    assert(sm, "state manager is required to finish battle in BattleController")
+    sm.switch(self.battle.returnState)
+end
+
+
 
 -- BATTLE LOG
 function BattleController:log(msg)

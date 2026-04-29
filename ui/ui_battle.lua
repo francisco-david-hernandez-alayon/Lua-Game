@@ -131,10 +131,16 @@ local function getCurrentStatsLines(lang)
     local current = lang.currentBattle.currentAttributes
     local lines = {
         "Level: " .. lang.level,
-        "Types: " .. table.concat(lang.languageTypes, ", "),
-        "HP: " .. lang.currentBattle.currentHp .. "/" .. lang.attributes.hp,
-        "Speed: " .. lang.currentBattle.currentSpeed .. "/" .. lang.attributes.speed,
     }
+
+    if lang.specialization ~= nil then
+        table.insert(lines, "Specialization: " .. lang.specialization)
+    end
+
+    table.insert(lines, "Types: " .. table.concat(lang.languageTypes, ", "))
+    table.insert(lines, "HP: " .. lang.currentBattle.currentHp .. "/" .. lang.attributes.hp)
+    table.insert(lines, "Speed: " .. lang.currentBattle.currentSpeed .. "/" .. lang.attributes.speed)
+
 
     local orderedStats = {
         { "atk_backend",    "ATK Backend" },
@@ -331,7 +337,6 @@ function BattleUI.draw(bc, selected, menuMode)
 
     if bc.currentEnemyLanguage then
         local el = bc.currentEnemyLanguage
-        local spriteData = getLanguageSpriteData(el.spritePath)
         local enemyTypes = table.concat(el.languageTypes, ", ")
 
         love.graphics.setColor(0.8, 0.2, 0.2)
@@ -363,7 +368,6 @@ function BattleUI.draw(bc, selected, menuMode)
 
     if bc.currentPlayerLanguage then
         local pl = bc.currentPlayerLanguage
-        local spriteData = getLanguageSpriteData(pl.spritePath)
         local playerTypes = table.concat(pl.languageTypes, ", ")
 
         love.graphics.setColor(0.2, 0.6, 1)

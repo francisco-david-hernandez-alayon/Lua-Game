@@ -12,9 +12,13 @@ local MainTest = {}
 local TEST_SLOT = 3
 
 local function buildTestInventory(inventory)
-    local TestLanguage = require("core.programming_languages.languages.test_language")
-    inventory:addProgrammingLanguageSlot(TestLanguage.new())
-    inventory:addProgrammingLanguageSlot(TestLanguage.new())
+    local TestLanguage1 = require("core.programming_languages.languages.test_language")
+    local TestLanguage2 = require("core.programming_languages.languages.test_language2")
+    local LanguageLevelBuilder = require("utils.language_level_builder")
+    inventory:addProgrammingLanguageSlot(LanguageLevelBuilder.build(TestLanguage1.new(), 1, "test_esp1"))
+    inventory:addProgrammingLanguageSlot(LanguageLevelBuilder.build(TestLanguage2.new(), 2, "test_esp1"))
+    inventory:addProgrammingLanguageSlot(LanguageLevelBuilder.build(TestLanguage1.new(), 3, "test_esp2"))
+    inventory:addProgrammingLanguageSlot(LanguageLevelBuilder.build(TestLanguage2.new(), 3, "test_esp2"))
 
     local itemA = Item.new("test_item_a", "test_item_a_desc", 1)
     inventory:addItem(itemA)

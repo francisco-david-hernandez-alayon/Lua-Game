@@ -197,6 +197,8 @@ function ProgrammingLanguage.new(data)
     return self
 end
 
+
+-- BATTLE
 function ProgrammingLanguage:resetLanguageAfterBattle()
     local currentHp = self.currentBattle.currentHp
     self.currentBattle = buildCurrentBattleAttributes(self.attributes)
@@ -263,6 +265,34 @@ function ProgrammingLanguage:calculateDamage(skill)
     return math.floor(skill.damage + atkStat * 0.5)
 end
 
+function ProgrammingLanguage:heal(amount)
+    local maxHp = self.attributes.hp
+
+    for key, value in pairs(self.attributes) do
+        self.currentBattle.currentAttributes[key] = value
+    end
+
+    self.currentBattle.currentSpeed = self.attributes.speed
+
+    if amount == nil then
+        self.currentBattle.currentHp = maxHp
+        return self.currentBattle.currentHp
+    end
+
+    assert(type(amount) == "number" and amount >= 0, "amount must be a non-negative number or nil")
+
+    self.currentBattle.currentHp = math.min(
+        maxHp,
+        self.currentBattle.currentHp + amount
+    )
+
+    return self.currentBattle.currentHp
+end
+
+
+
+-- CUSTOMIZE LANGUAGE
+-- Add a skill and, if there is space, add it to currentSkill
 function ProgrammingLanguage:addSkill(skill)
     table.insert(self.skills, skill)
     if #self.currentSkills < MAX_CURRENT_SKILLS then
@@ -328,6 +358,8 @@ function ProgrammingLanguage:unequipItem(index)
     table.remove(self.equippedItems, index)
 end
 
+
+-- LEVEL UP LANGUAGE
 function ProgrammingLanguage:addExp(amount)
     assert(type(amount) == "number" and amount > 0, "amount must be positive")
     if not self.levelTree then
@@ -352,8 +384,6 @@ function ProgrammingLanguage:addExp(amount)
     return false, nil
 end
 
-
---- SAVE PROGRAMMING LANGUAGE
 function ProgrammingLanguage:applyUpgrade(upgradeIndex)
     if not self.levelTree then
         return nil, "no_level_tree"
@@ -376,6 +406,7 @@ function ProgrammingLanguage:applyUpgrade(upgradeIndex)
 end
 
 
+--- SAVE PROGRAMMING LANGUAGE
 function ProgrammingLanguage:toTable()
     local currentSkillIndexes = {}
 

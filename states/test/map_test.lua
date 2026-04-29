@@ -13,17 +13,6 @@ local MapTest = {}
 local STATENAME = S.test.map_test
 
 
-local function buildTestBattle()
-    local TestLanguage = require("core.programming_languages.languages.test_language")
-
-    return BattleController.new(
-        "EnemyProgrammer",
-        { TestLanguage.new(), TestLanguage.new(), TestLanguage.new() },
-        { TestLanguage.new(), TestLanguage.new() }
-    )
-end
-
-
 function MapTest.enter(sm, L)
     MapTest.sm    = sm
     MapTest.debug = false
@@ -90,8 +79,14 @@ function MapTest.keypressed(key)
 
     -- BATTLE TESTING
     if key == "c" then
-        local TestLanguage = require("core.programming_languages.languages.test_language")
-        local enemyLanguages = { TestLanguage.new(), TestLanguage.new() }
+        local TestLanguage1 = require("core.programming_languages.languages.test_language")
+        local TestLanguage2 = require("core.programming_languages.languages.test_language2")
+        local LanguageLevelBuilder = require("utils.language_level_builder")
+
+        local enemyLanguages = {
+            LanguageLevelBuilder.build(TestLanguage1.new(), 3, "test_esp1"),
+            LanguageLevelBuilder.build(TestLanguage2.new(), 3, "test_esp2"),
+        }
 
         GameController.startBattle(
             MapTest.sm,
@@ -100,6 +95,7 @@ function MapTest.keypressed(key)
             "map_test"
         )
     end
+
 
 
     if not UIController.isMenuOpen() then

@@ -46,4 +46,19 @@ return {
     passive_system_boost_desc    = "System attacks deal +5 bonus damage.",
     language_items_full          = "No item slots available.",
     language_item_equipped       = "Item equipped.",
+
+    test2_level_2_name           = "System Upgrade I",
+    test2_level_2_desc           = "Improves core system stability and throughput.",
+    test2_level_3_name           = "System Upgrade II",
+    test2_level_3_desc           = "Unlocks a new system specialization path.",
+    test2_level_4_name           = "System Upgrade III",
+    test2_level_4_desc           = "Strengthens advanced system techniques and passive defenses.",
+    passive_test2_system_boost_desc           = "System attacks gain additional power before striking.",
+    passive_test2_backend_resist_name           = "Backend Resistance",
+    passive_test2_backend_resist_desc           = "Raises defensive focus when receiving hostile pressure.",
+    passive_test2_system_boost_name           = "Kernel Boost",
+    skill_test2_kernel           = "Kernel Strike",
+    skill_test2_kernel_desc           = "Launches a direct system attack with solid base damage.",
+    skill_test2_optimize           = "Optimize Threads",
+    skill_test2_optimize_desc           = "Improves current system defenses for the rest of the battle."
 }

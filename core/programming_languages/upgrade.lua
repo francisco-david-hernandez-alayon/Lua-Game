@@ -47,7 +47,7 @@ function Upgrade:apply(lang)
                 lang.attributes[stat] = lang.attributes[stat] + delta
                 -- Sync maxLinesOfCode if hp changed
                 if stat == "hp" then
-                    lang.attributes.maxHp = lang.attributes.maxHp + delta
+                    lang.attributes.hp = lang.attributes.hp + delta
                 end
             end
         end

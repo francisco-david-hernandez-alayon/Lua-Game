@@ -1,6 +1,6 @@
 -- core/programming_languages/languages/test_language.lua
 --
--- Test language: Backend + Scripting type, levels 1-3 with upgrades.
+-- Test language: Backend + AI type, levels 1-3 with upgrades.
 
 local ProgrammingLanguage = require("core.programming_languages.programming_language")
 local LevelTree = require("core.programming_languages.level_tree")
@@ -115,7 +115,7 @@ local function newTestLanguage()
         language_name = "TestLang",
         languageTypes = {
             LanguageTypes.BACKEND,
-            LanguageTypes.SCRIPTING
+            LanguageTypes.AI
         },
         hp = 100,
         speed = 10,
@@ -124,7 +124,7 @@ local function newTestLanguage()
                 attack = 20,
                 defense = 15
             },
-            [LanguageTypes.SCRIPTING] = {
+            [LanguageTypes.AI] = {
                 attack = 18,
                 defense = 12
             }

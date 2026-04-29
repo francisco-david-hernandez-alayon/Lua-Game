@@ -46,4 +46,21 @@ return {
     passive_system_boost_desc    = "Compatibilidad del sistema",
     language_items_full          = "No hay espacios disponibles para objetos.",
     language_item_equipped       = "Objeto equipado.",
+
+    test2_level_2_name          = "Mejora de Sistema I",
+    test2_level_2_desc          = "Mejora la estabilidad del sistema y su capacidad de respuesta.",
+    test2_level_3_name          = "Mejora de Sistema II",
+    test2_level_3_desc          = "Desbloquea una nueva ruta de especializacion del sistema.",
+    test2_level_4_name          = "Mejora de Sistema III",
+    test2_level_4_desc          = "Refuerza tecnicas avanzadas del sistema y defensas pasivas.",
+    passive_test2_system_boost_name          = "Impulso del Kernel",
+    passive_test2_system_boost_desc          = "Los ataques de sistema ganan poder adicional antes de golpear.",
+    passive_test2_backend_resist_name          = "Resistencia Backend",
+    passive_test2_backend_resist_desc          = "Aumenta el enfoque defensivo al recibir presion enemiga.",
+    skill_test2_kernel          = "Golpe de Kernel",
+    skill_test2_kernel_desc          = "Lanza un ataque directo de sistema con buen dano base.",
+    skill_test2_optimize          = "Optimizar Hilos",
+    skill_test2_optimize_desc          = "Mejora las defensas actuales del sistema durante el resto del combate."
+
+
 }

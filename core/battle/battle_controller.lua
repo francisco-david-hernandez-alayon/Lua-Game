@@ -10,6 +10,7 @@
 --   5. Check win/lose condition
 
 local BattleAI = require("core.battle.battle_ai")
+local LanguageEffectiveness = require("utils.language_effectiveness")
 
 local BattleController = {}
 BattleController.__index = BattleController
@@ -250,7 +251,9 @@ function BattleController:applySkill(attacker, defender, skill)
     -- Attack effect.
     if skill:hasCategory("attack") and skill.damage then
         local damage = attacker:calculateDamage(skill)
-        local actual = defender:takeDamage(damage)
+        local multiplier, effectId = LanguageEffectiveness.getMultiplierAndEffectId(defender, skill)
+        local finalDamage = math.max(1, math.floor(damage * multiplier)) -- 1 is to avoid 0 damage for rounding
+        local actual = defender:takeDamage(finalDamage)
 
         self:pushMessage(
             attacker.language_name ..
@@ -259,12 +262,17 @@ function BattleController:applySkill(attacker, defender, skill)
             defender.language_name
         )
 
+        if effectId ~= "neutral" then
+            self:pushMessage(effectId)
+        end
+
         if defender:isObsolete() then
             self:pushMessage(defender.language_name .. " is OBSOLETE")
         end
 
         didSomething = true
     end
+
 
     -- Heal effect.
     if skill:hasCategory("heal") and skill.heal then

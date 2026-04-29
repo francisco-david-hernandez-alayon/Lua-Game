@@ -159,6 +159,8 @@ function ProgrammingLanguage.new(data)
         language_id = IdGenerator.uuid(),
         templateId = data.templateId or nil, -- TO RESTORE LENGUAGE WHEN GAME SAVED
         spritePath = data.spritePath or nil,
+        spritePos = data.spritePos or {},
+
         language_name = data.language_name,
         languageTypes = data.languageTypes,
 
@@ -423,6 +425,7 @@ function ProgrammingLanguage:toTable()
         language_id = self.language_id,
         templateId = self.templateId,
         spritePath = self.spritePath,
+        spritePos = self.spritePos,
         language_name = self.language_name,
         languageTypes = self.languageTypes,
         attributes = self.attributes,
@@ -443,6 +446,7 @@ function ProgrammingLanguage.fromTable(data)
     lang.language_id = data.language_id
     lang.templateId = data.templateId
     lang.spritePath = data.spritePath or lang.spritePath
+    lang.spritePos = data.spritePos or lang.spritePos
     lang.language_name = data.language_name
     lang.languageTypes = data.languageTypes
     lang.attributes = data.attributes

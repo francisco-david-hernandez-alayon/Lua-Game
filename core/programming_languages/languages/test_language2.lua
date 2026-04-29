@@ -106,7 +106,8 @@ local skill_optimize = Skill.new(
 local function newTestLanguage2()
     local lang = ProgrammingLanguage.new({
         templateId = ID,
-        spritePath = "assets/sprites/test/test-lang2.png",
+        spritePath = "assets/sprites/test/test-lang1.png"",
+        spritePos = { "test2_esp1", "test2_esp2" },
         language_name = "SysLang",
         languageTypes = {
             LanguageTypes.SYSTEM

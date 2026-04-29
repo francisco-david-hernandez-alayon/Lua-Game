@@ -112,7 +112,10 @@ function Battle.keypressed(key)
     end
 end
 
-function Battle.update(dt) end
+function Battle.update(dt)
+    BattleUI.update(bc, dt)
+end
+
 
 function Battle.draw()
     BattleUI.draw(bc, selected, menuMode)

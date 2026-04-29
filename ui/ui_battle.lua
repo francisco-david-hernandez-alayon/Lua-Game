@@ -1,6 +1,8 @@
 -- ui/ui_battle.lua
 -- Handles all drawing for the battle state.
 local anim8               = require("libs.anim8")
+local GetLanguageBattleSprite = require("utils.get_language_battle_sprite")
+
 local L                   = require("core.localization.localization")
 local BattleController    = require("core.battle.battle_controller")
 local LanguageEffectiveness = require("utils.language_effectiveness")
@@ -13,49 +15,19 @@ local INFO_PANEL_H        = 420
 local MAX_LINES_INFO_PANEL = 100
 
 
--- SPRITES
-local spriteCache = {}
+--Sprite
+local battleSpriteCache = {}
 
-local function getLanguageSpriteData(path)
-    if not path then
+local function getBattleSprite(language)
+    if not language or not language.language_id or not language.spritePath then
         return nil
     end
 
-    if not spriteCache[path] then
-        local image = love.graphics.newImage(path)
-        local width = image:getWidth()
-        local height = image:getHeight()
-
-        if width < 128 or height < 64 then
-            print("[BattleUI] Invalid language sprite size for: " .. path ..
-                " | got " .. width .. "x" .. height .. " | expected at least 128x64")
-            return nil
-        end
-
-        if width % 64 ~= 0 or height % 64 ~= 0 then
-            print("[BattleUI] Warning: language sprite is not aligned to 64px grid: " .. path ..
-                " | got " .. width .. "x" .. height)
-        end
-
-        local grid = anim8.newGrid(64, 64, width, height)
-        local frontFrames = grid(1, 1)
-        local backFrames = grid(2, 1)
-
-        if not frontFrames[1] or not backFrames[1] then
-            print("[BattleUI] Missing front/back frames in language sprite: " .. path)
-            return nil
-        end
-
-        print("[BattleUI] Loaded language sprite: " .. path .. " | " .. width .. "x" .. height)
-
-        spriteCache[path] = {
-            image = image,
-            frontQuad = frontFrames[1],
-            backQuad = backFrames[1],
-        }
+    if not battleSpriteCache[language.language_id] then
+        battleSpriteCache[language.language_id] = GetLanguageBattleSprite.create(language)
     end
 
-    return spriteCache[path]
+    return battleSpriteCache[language.language_id]
 end
 
 
@@ -309,6 +281,25 @@ end
 
 
 
+-- MAIN UPDATE
+function BattleUI.update(bc, dt)
+    if bc.currentEnemyLanguage then
+        local enemySprite = getBattleSprite(bc.currentEnemyLanguage)
+        if enemySprite then
+            enemySprite.frontAnim:update(dt)
+        end
+    end
+
+    if bc.currentPlayerLanguage then
+        local playerSprite = getBattleSprite(bc.currentPlayerLanguage)
+        if playerSprite then
+            playerSprite.backAnim:update(dt)
+        end
+    end
+end
+
+
+
 -- MAIN DRAW
 function BattleUI.draw(bc, selected, menuMode)
     local sw = love.graphics.getWidth()
@@ -352,18 +343,21 @@ function BattleUI.draw(bc, selected, menuMode)
         love.graphics.setColor(0.4, 0.4, 0.4)
         love.graphics.print(bc.programmerName, 16, 48)
 
+        local spriteData = getBattleSprite(el)
         if spriteData then
             love.graphics.setColor(1, 1, 1)
-            love.graphics.draw(
+            spriteData.frontAnim:draw(
                 spriteData.image,
-                spriteData.frontQuad,
                 enemySpriteX,
                 enemySpriteY,
                 0,
                 ENEMY_SPRITE_SCALE,
-                ENEMY_SPRITE_SCALE
+                ENEMY_SPRITE_SCALE,
+                32,
+                32
             )
         end
+
     end
 
 
@@ -381,18 +375,21 @@ function BattleUI.draw(bc, selected, menuMode)
         love.graphics.setColor(0.4, 0.4, 0.4)
         love.graphics.print(L.get("battle_you"), 16, ARENA_H - 28)
 
+        local spriteData = getBattleSprite(pl)
         if spriteData then
             love.graphics.setColor(1, 1, 1)
-            love.graphics.draw(
+            spriteData.backAnim:draw(
                 spriteData.image,
-                spriteData.backQuad,
                 playerSpriteX,
                 playerSpriteY,
                 0,
                 PLAYER_SPRITE_SCALE,
-                PLAYER_SPRITE_SCALE
+                PLAYER_SPRITE_SCALE,
+                32,
+                32
             )
         end
+
     end
 
 

@@ -112,6 +112,7 @@ local function newTestLanguage()
     local lang = ProgrammingLanguage.new({
         templateId = ID,
         spritePath = "assets/sprites/test/test-lang1.png",
+        spritePos = { "test_esp1", "test_esp2" },
         language_name = "TestLang",
         languageTypes = {
             LanguageTypes.BACKEND,

@@ -1,7 +1,7 @@
 -- ui/ui_battle.lua
 -- Handles all drawing for the battle state.
 local anim8               = require("libs.anim8")
-local GetLanguageBattleSprite = require("utils.get_language_battle_sprite")
+local GetLanguageBattleSprite = require("utils.sprites.get_language_battle_sprite")
 
 local L                   = require("core.localization.localization")
 local BattleController    = require("core.battle.battle_controller")
@@ -15,7 +15,7 @@ local INFO_PANEL_H        = 420
 local MAX_LINES_INFO_PANEL = 100
 
 
---Sprite
+----------------------------------- SPRITE -----------------------------------
 local battleSpriteCache = {}
 
 local function getBattleSprite(language)
@@ -31,7 +31,7 @@ local function getBattleSprite(language)
 end
 
 
-
+----------------------------------- MENU -----------------------------------
 -- Menu builders
 local function buildActionMenu()
     return { L.get("battle_attack"), L.get("battle_swap") }
@@ -174,6 +174,7 @@ local function getCurrentStatsLines(lang)
     return lines
 end
 
+
 local function drawWrappedLines(lines, x, y, width, lineHeight, maxLines)
     local lineY = y
     local drawn = 0
@@ -191,7 +192,6 @@ local function drawWrappedLines(lines, x, y, width, lineHeight, maxLines)
         end
     end
 end
-
 
 
 local function drawInfoPanel(bc, selected, menuMode, x, y, w, h)
@@ -286,6 +286,52 @@ function BattleUI.getMenuSize(bc, menuMode)
 end
 
 
+----------------------------------- HP BAR -----------------------------------
+local HP_BAR_OFFSET_Y = -100   
+local HP_BAR_WIDTH    = 120
+local HP_BAR_HEIGHT   = 12
+
+local HP_COLOR_HIGH   = {0.2, 0.8, 0.2}  -- green
+local HP_COLOR_MED    = {1.0, 0.6, 0.0}  -- orange
+local HP_COLOR_LOW    = {0.9, 0.2, 0.2}  -- red
+
+local HP_BG_COLOR     = {0.2, 0.2, 0.2}
+local HP_BORDER_COLOR = {0.4, 0.4, 0.4}
+
+local function drawHPBar(x, y, w, h, current, max)
+    if not current or not max or max == 0 then return end
+
+    local ratio = current / max
+    local fillW = w * ratio
+
+    -- Select color
+    local color
+    if ratio > 0.5 then
+        color = HP_COLOR_HIGH
+    elseif ratio > 0.25 then
+        color = HP_COLOR_MED
+    else
+        color = HP_COLOR_LOW
+    end
+
+    -- Background
+    love.graphics.setColor(HP_BG_COLOR)
+    love.graphics.rectangle("fill", x, y, w, h)
+
+    -- Hp
+    love.graphics.setColor(color)
+    love.graphics.rectangle("fill", x, y, fillW, h)
+
+    -- Border
+    love.graphics.setColor(HP_BORDER_COLOR)
+    love.graphics.rectangle("line", x, y, w, h)
+
+    -- Text
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.print(current .. "/" .. max, x + w + 8, y - 2)
+end
+
+
 
 -- MAIN UPDATE
 function BattleUI.update(bc, dt)
@@ -321,20 +367,18 @@ function BattleUI.draw(bc, selected, menuMode)
     local ENEMY_SPRITE_SCALE  = 2.5
     local PLAYER_SPRITE_SCALE = 2.5
 
-    local enemySpriteX        = ARENA_W - 220
-    local enemySpriteY        = 80
+    --Sprites
+    local ArenaHCenter= (2 * ARENA_H) / 3  -- The ARENA takes up the bottom two-thirds of the height; the centre is halfway between those two-thirds
+    local ArenaWCenter= ARENA_W / 2
+    local SpriteHMargin = 140
+    local SpriteWMargin = 140
+    local enemySpriteX        = ArenaWCenter + SpriteWMargin
+    local enemySpriteY        = ArenaHCenter - SpriteHMargin
+    local playerSpriteX       = ArenaWCenter - SpriteWMargin
+    local playerSpriteY       = ArenaHCenter + SpriteHMargin
 
-    local playerSpriteX       = 120
-    local playerSpriteY       = ARENA_H - 240
 
-
-
-    love.graphics.setColor(0.08, 0.08, 0.08)
-    love.graphics.rectangle("fill", 0, 0, sw, sh)
-
-    love.graphics.setColor(0.12, 0.12, 0.12)
-    love.graphics.rectangle("fill", 0, 0, ARENA_W, ARENA_H)
-
+    -- ENEMY
     if bc.currentEnemyLanguage then
         local el = bc.currentEnemyLanguage
         local enemyTypes = table.concat(el.languageTypes, ", ")
@@ -347,6 +391,18 @@ function BattleUI.draw(bc, selected, menuMode)
         love.graphics.print(enemyTypes, 16, 32)
         love.graphics.setColor(0.4, 0.4, 0.4)
         love.graphics.print(bc.programmerName, 16, 48)
+
+        local hpX = enemySpriteX - HP_BAR_WIDTH / 2
+        local hpY = enemySpriteY + HP_BAR_OFFSET_Y
+
+        drawHPBar(
+            hpX,
+            hpY,
+            HP_BAR_WIDTH,
+            HP_BAR_HEIGHT,
+            el.currentBattle.currentHp,
+            el.attributes.hp
+        )
 
         local spriteData = getBattleSprite(el)
         if spriteData then
@@ -365,7 +421,7 @@ function BattleUI.draw(bc, selected, menuMode)
 
     end
 
-
+    -- PLAYER
     if bc.currentPlayerLanguage then
         local pl = bc.currentPlayerLanguage
         local playerTypes = table.concat(pl.languageTypes, ", ")
@@ -378,6 +434,18 @@ function BattleUI.draw(bc, selected, menuMode)
         love.graphics.print(playerTypes, 16, ARENA_H - 48)
         love.graphics.setColor(0.4, 0.4, 0.4)
         love.graphics.print(L.get("battle_you"), 16, ARENA_H - 28)
+
+        local hpX = playerSpriteX - HP_BAR_WIDTH / 2
+        local hpY = playerSpriteY + HP_BAR_OFFSET_Y
+
+        drawHPBar(
+            hpX,
+            hpY,
+            HP_BAR_WIDTH,
+            HP_BAR_HEIGHT,
+            pl.currentBattle.currentHp,
+            pl.attributes.hp
+        )
 
         local spriteData = getBattleSprite(pl)
         if spriteData then
@@ -395,7 +463,6 @@ function BattleUI.draw(bc, selected, menuMode)
         end
 
     end
-
 
 
     love.graphics.setColor(0.15, 0.15, 0.15)

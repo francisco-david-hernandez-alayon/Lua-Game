@@ -4,7 +4,7 @@ local AudioManager = require("core.audio.audio_manager")
 
 
 -- DEV SCREEN MODE
-local DEV = false -- true = windowed half screen, false = fullscreen
+local DEV = true -- true = windowed half screen, false = fullscreen
 
 if DEV then
     local sw = love.window.getDesktopDimensions()

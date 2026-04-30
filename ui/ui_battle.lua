@@ -286,7 +286,7 @@ function BattleUI.getMenuSize(bc, menuMode)
 end
 
 
------------------------------------ HP BAR -----------------------------------
+----------------------------------- SPRITE BAR -----------------------------------
 local HP_BAR_OFFSET_Y = -100   
 local HP_BAR_WIDTH    = 120
 local HP_BAR_HEIGHT   = 12
@@ -298,13 +298,64 @@ local HP_COLOR_LOW    = {0.9, 0.2, 0.2}  -- red
 local HP_BG_COLOR     = {0.2, 0.2, 0.2}
 local HP_BORDER_COLOR = {0.4, 0.4, 0.4}
 
+local HEADER_OFFSET_Y = -150
+local HEADER_LINE_SPACING = 14
+
+local TYPE_MAX_WIDTH = HP_BAR_WIDTH
+local TYPE_BG_PADDING_X = 6
+local TYPE_BG_PADDING_Y = 2
+
+local function drawHeader(x, y, programming_language)
+
+    -- LINE 1: name + specialization
+    local line1 = programming_language.language_name
+    if programming_language.specialization then
+        line1 = line1 .. " [" .. programming_language.specialization .. "]"
+    end
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.print(line1, x, y)
+
+    -- LINE 2: level
+    local lvlText = "nvl " .. tostring(programming_language.level)
+    love.graphics.print(
+        lvlText,
+        x,
+        y + HEADER_LINE_SPACING
+    )
+
+    -- LINE 3: types badge
+    local typesText = table.concat(programming_language.languageTypes or {}, ", ")
+    local font = love.graphics.getFont()
+    local _, wrappedLines = font:getWrap(typesText, TYPE_MAX_WIDTH)
+    local ty = y + HEADER_LINE_SPACING * 2
+    local lineH = font:getHeight()
+    local boxH = #wrappedLines * lineH
+    local padX = TYPE_BG_PADDING_X
+    local padY = TYPE_BG_PADDING_Y
+
+    -- badge background
+    love.graphics.setColor(0, 0, 0, 0.5)
+    love.graphics.rectangle(
+        "fill",
+        x,
+        ty - padY,
+        TYPE_MAX_WIDTH,
+        boxH + padY * 2
+    )
+
+    -- badge text
+    love.graphics.setColor(1, 1, 1)
+    for i, line in ipairs(wrappedLines) do
+        love.graphics.print(line, x, ty + (i - 1) * lineH)
+    end
+end
+
 local function drawHPBar(x, y, w, h, current, max)
     if not current or not max or max == 0 then return end
 
     local ratio = current / max
     local fillW = w * ratio
 
-    -- Select color
     local color
     if ratio > 0.5 then
         color = HP_COLOR_HIGH
@@ -318,7 +369,7 @@ local function drawHPBar(x, y, w, h, current, max)
     love.graphics.setColor(HP_BG_COLOR)
     love.graphics.rectangle("fill", x, y, w, h)
 
-    -- Hp
+    -- Fill
     love.graphics.setColor(color)
     love.graphics.rectangle("fill", x, y, fillW, h)
 
@@ -326,9 +377,15 @@ local function drawHPBar(x, y, w, h, current, max)
     love.graphics.setColor(HP_BORDER_COLOR)
     love.graphics.rectangle("line", x, y, w, h)
 
-    -- Text
+    -- TEXT CENTERED VERTICALLY (FIX IMPORTANTE)
     love.graphics.setColor(1, 1, 1)
-    love.graphics.print(current .. "/" .. max, x + w + 8, y - 2)
+
+    local text = current .. "/" .. max
+    local font = love.graphics.getFont()
+
+    local textY = y + (h / 2) - (font:getHeight() / 2)
+
+    love.graphics.print(text, x + w + 8, textY)
 end
 
 
@@ -370,7 +427,7 @@ function BattleUI.draw(bc, selected, menuMode)
     --Sprites
     local ArenaHCenter= (2 * ARENA_H) / 3  -- The ARENA takes up the bottom two-thirds of the height; the centre is halfway between those two-thirds
     local ArenaWCenter= ARENA_W / 2
-    local SpriteHMargin = 140
+    local SpriteHMargin = 100
     local SpriteWMargin = 140
     local enemySpriteX        = ArenaWCenter + SpriteWMargin
     local enemySpriteY        = ArenaHCenter - SpriteHMargin
@@ -383,18 +440,23 @@ function BattleUI.draw(bc, selected, menuMode)
         local el = bc.currentEnemyLanguage
         local enemyTypes = table.concat(el.languageTypes, ", ")
 
-        love.graphics.setColor(0.8, 0.2, 0.2)
-        love.graphics.print(
-            el.language_name .. "  [" .. el.currentBattle.currentHp .. "/" .. el.attributes.hp .. "]  level " .. el.level,
-            16, 16)
+        -- love.graphics.setColor(0.8, 0.2, 0.2)
+        -- love.graphics.print(
+        --     el.language_name .. "  [" .. el.currentBattle.currentHp .. "/" .. el.attributes.hp .. "]  level " .. el.level,
+        --     16, 16)
         love.graphics.setColor(0.7, 0.7, 0.7)
         love.graphics.print(enemyTypes, 16, 32)
         love.graphics.setColor(0.4, 0.4, 0.4)
         love.graphics.print(bc.programmerName, 16, 48)
 
+        -- Header
+        local baseX = enemySpriteX - HP_BAR_WIDTH / 2
+        local headY = enemySpriteY + HEADER_OFFSET_Y
+        drawHeader(baseX, headY, bc.currentEnemyLanguage)
+
+        -- HP
         local hpX = enemySpriteX - HP_BAR_WIDTH / 2
         local hpY = enemySpriteY + HP_BAR_OFFSET_Y
-
         drawHPBar(
             hpX,
             hpY,
@@ -426,18 +488,23 @@ function BattleUI.draw(bc, selected, menuMode)
         local pl = bc.currentPlayerLanguage
         local playerTypes = table.concat(pl.languageTypes, ", ")
 
-        love.graphics.setColor(0.2, 0.6, 1)
-        love.graphics.print(
-            pl.language_name .. "  [" .. pl.currentBattle.currentHp .. "/" .. pl.attributes.hp .. "]  level " .. pl.level,
-            16, ARENA_H - 64)
+        -- love.graphics.setColor(0.2, 0.6, 1)
+        -- love.graphics.print(
+        --     pl.language_name .. "  [" .. pl.currentBattle.currentHp .. "/" .. pl.attributes.hp .. "]  level " .. pl.level,
+        --     16, ARENA_H - 64)
         love.graphics.setColor(0.7, 0.7, 0.7)
         love.graphics.print(playerTypes, 16, ARENA_H - 48)
         love.graphics.setColor(0.4, 0.4, 0.4)
         love.graphics.print(L.get("battle_you"), 16, ARENA_H - 28)
 
-        local hpX = playerSpriteX - HP_BAR_WIDTH / 2
-        local hpY = playerSpriteY + HP_BAR_OFFSET_Y
+        -- Header
+        local baseX = playerSpriteX - HP_BAR_WIDTH / 2
+        local headY = playerSpriteY - (HEADER_OFFSET_Y + 20)  -- TODO CHANGE THIS OFFSET: NEED TO ENCOMPASS THE ENTIRE OFFSET SO THAT IT CAN BE USED BOTH ABOVE THE ENEMY AND BELOW THE PLAYER
+        drawHeader(baseX, headY, bc.currentPlayerLanguage )
 
+        -- HP
+        local hpX = playerSpriteX - HP_BAR_WIDTH / 2
+        local hpY = playerSpriteY - HP_BAR_OFFSET_Y
         drawHPBar(
             hpX,
             hpY,

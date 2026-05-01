@@ -425,6 +425,11 @@ function BattleUI.draw(bc, selected, menuMode)
     local PLAYER_SPRITE_SCALE = 2.5
 
     --Sprites
+    local BATTLE_FRAME_WIDTH = 128
+    local BATTLE_FRAME_HEIGHT = 128
+    local BATTLE_FRAME_OX = BATTLE_FRAME_WIDTH / 2
+    local BATTLE_FRAME_OY = BATTLE_FRAME_HEIGHT / 2
+
     local ArenaHCenter= (2 * ARENA_H) / 3  -- The ARENA takes up the bottom two-thirds of the height; the centre is halfway between those two-thirds
     local ArenaWCenter= ARENA_W / 2
     local SpriteHMargin = 100
@@ -472,8 +477,8 @@ function BattleUI.draw(bc, selected, menuMode)
                 0,
                 ENEMY_SPRITE_SCALE,
                 ENEMY_SPRITE_SCALE,
-                32,
-                32
+                BATTLE_FRAME_OX,
+                BATTLE_FRAME_OY
             )
         end
 
@@ -516,8 +521,8 @@ function BattleUI.draw(bc, selected, menuMode)
                 0,
                 PLAYER_SPRITE_SCALE,
                 PLAYER_SPRITE_SCALE,
-                32,
-                32
+                BATTLE_FRAME_OX,
+                BATTLE_FRAME_OY
             )
         end
 

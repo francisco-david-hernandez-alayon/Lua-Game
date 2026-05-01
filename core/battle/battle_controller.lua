@@ -6,8 +6,14 @@
 --   1. Player picks action (attack or change language)
 --   2. If change: swap language first, enemy attacks new language, restart turn
 --   3. If attack: resolve turn order by speed
---   4. Check for obsolete languages — force language pick if needed
---   5. Check win/lose condition
+--   4. Each attacker resolves independently — player confirms messages before next attacker goes
+--   5. Check for obsolete languages — force language pick if needed
+--   6. Check win/lose condition
+--
+-- RESOLVING PHASES (step-by-step for future animation hooks):
+--   RESOLVING_FIRST  — first attacker's skill is being shown (messages pending)
+--   RESOLVING_SECOND — second attacker's skill queued, waiting for first messages to clear
+--   After RESOLVING_SECOND messages clear → back to PLAYER_ACTION or PICK_LANGUAGE
 
 local BattleAI = require("core.battle.battle_ai")
 local LanguageEffectiveness = require("utils.language_effectiveness")
@@ -16,11 +22,12 @@ local BattleController = {}
 BattleController.__index = BattleController
 
 local PHASE = {
-    PICK_LANGUAGE  = "pick_language",
-    PLAYER_ACTION  = "player_action",
-    PICK_SWAP      = "pick_swap",
-    RESOLVING      = "resolving",
-    BATTLE_OVER    = "battle_over",
+    PICK_LANGUAGE    = "pick_language",
+    PLAYER_ACTION    = "player_action",
+    PICK_SWAP        = "pick_swap",
+    RESOLVING_FIRST  = "resolving_first",   -- first attacker hit, messages pending
+    RESOLVING_SECOND = "resolving_second",  -- second attacker queued, messages pending
+    BATTLE_OVER      = "battle_over",
 }
 BattleController.PHASE = PHASE
 
@@ -38,8 +45,15 @@ function BattleController.new(battle)
         currentPlayerLanguage = nil,
         currentEnemyLanguage = nil,
         phase = PHASE.PICK_LANGUAGE,
+
+        -- Pending skills for the two-step resolution
         pendingPlayerSkill = nil,
-        pendingEnemySkill = nil,
+        pendingEnemySkill  = nil,
+        -- Whether player goes first this turn
+        _playerFirst = true,
+        -- Whether the second attacker is still alive to act
+        _secondPending = false,
+
         winner = nil,
         battleLog = {},
         messageQueue = {},
@@ -55,7 +69,6 @@ function BattleController:finish(sm)
     assert(sm, "state manager is required to finish battle in BattleController")
     sm.switch(self.battle.returnState)
 end
-
 
 
 -- BATTLE LOG
@@ -82,7 +95,8 @@ function BattleController:hasMessages()
     return #self.messageQueue > 0
 end
 
--- GET ACTIVE LANGUAGES
+
+-- ACTIVE LANGUAGES
 function BattleController:getActivePlayerLanguages()
     local active = {}
     for _, lang in ipairs(self.playerLanguages) do
@@ -103,6 +117,7 @@ function BattleController:getActiveEnemyLanguages()
     return active
 end
 
+
 -- WIN CONDITION
 function BattleController:checkWinCondition()
     if #self:getActivePlayerLanguages() == 0 then
@@ -122,6 +137,8 @@ function BattleController:checkWinCondition()
     return false
 end
 
+
+-- LANGUAGE SWAP
 function BattleController:changeCurrentPlayerLanguage(language)
     assert(language:isActive(), "cannot select an obsolete language")
     self.currentPlayerLanguage = language
@@ -148,69 +165,110 @@ function BattleController:playerSwapLanguage(language)
     end
 end
 
+
+-- ATTACK RESOLUTION (step-by-step)
+--
+-- Step 1  playerAttack()         — store skills, determine order, fire first attacker
+-- Step 2  advanceResolution()    — called by battle.lua when last message is popped
+--           • if RESOLVING_FIRST and second is pending → fire second attacker
+--           • if RESOLVING_SECOND (or first was last) → close turn
+
 function BattleController:playerAttack(skill)
     self.pendingPlayerSkill = skill
-    self.pendingEnemySkill = BattleAI.chooseAttack(self.currentEnemyLanguage)
-    self.phase = PHASE.RESOLVING
-    self:resolveAttacks()
+    self.pendingEnemySkill  = BattleAI.chooseAttack(self.currentEnemyLanguage)
+
+    -- Determine speed order
+    local playerSpeed = self.currentPlayerLanguage.currentBattle.currentSpeed
+    local enemySpeed  = self.currentEnemyLanguage and
+                        self.currentEnemyLanguage.currentBattle.currentSpeed or 0
+    self._playerFirst = (playerSpeed >= enemySpeed)
+
+    -- Fire first attacker
+    if self._playerFirst then
+        self:_resolveFirstStep(
+            self.currentPlayerLanguage,
+            self.currentEnemyLanguage,
+            self.pendingPlayerSkill
+        )
+    else
+        self:_resolveFirstStep(
+            self.currentEnemyLanguage,
+            self.currentPlayerLanguage,
+            self.pendingEnemySkill
+        )
+    end
 end
 
-function BattleController:resolveAttacks()
-    local playerFirst = true
+-- Internal: apply first attacker, set phase to RESOLVING_FIRST, mark if second is possible.
+function BattleController:_resolveFirstStep(attacker, defender, skill)
+    self:applySkill(attacker, defender, skill)
 
-    if self.currentEnemyLanguage and self.currentPlayerLanguage then
-        local playerSpeed = self.currentPlayerLanguage.currentBattle.currentSpeed
-        local enemySpeed = self.currentEnemyLanguage.currentBattle.currentSpeed
+    -- Did the defender die? Second attacker may still be alive.
+    -- We always check second step in advanceResolution; just store whether it can act.
+    self._secondPending = true
+    self.phase = PHASE.RESOLVING_FIRST
+end
 
-        if enemySpeed > playerSpeed then
-            playerFirst = false
-        end
-    end
-
-    local function afterEnemyHit()
-        if self.currentEnemyLanguage and self.currentEnemyLanguage:isObsolete() then
-            self:log(self.currentEnemyLanguage.language_name .. " is OBSOLETE")
-            if self:checkWinCondition() then return true end
-
-            self.currentEnemyLanguage = BattleAI.chooseLanguage(self.enemyLanguages)
-            if self.currentEnemyLanguage then
-                self:log(self.programmerName .. " sent out " .. self.currentEnemyLanguage.language_name)
-            end
-        end
-        return false
-    end
-
-    local function resolvePlayerSkill()
-        if not self.pendingPlayerSkill or not self.currentEnemyLanguage then
-            return false
-        end
-
-        self:applySkill(self.currentPlayerLanguage, self.currentEnemyLanguage, self.pendingPlayerSkill)
-        return afterEnemyHit()
-    end
-
-    local function resolveEnemySkill()
-        if not self.pendingEnemySkill or not self.currentEnemyLanguage then
-            return false
-        end
-
-        self:applySkill(self.currentEnemyLanguage, self.currentPlayerLanguage, self.pendingEnemySkill)
+-- Called by battle.lua after the player pops the last message.
+function BattleController:advanceResolution()
+    if self.phase == PHASE.RESOLVING_FIRST then
+        -- Check win before second attacker goes
         if self:checkWinCondition() then
-            return true
+            -- Messages about battle_over are now in queue; phase is BATTLE_OVER
+            return
         end
 
-        return false
-    end
+        if self._secondPending then
+            self._secondPending = false
 
-    if playerFirst then
-        if resolvePlayerSkill() then return end
-        if resolveEnemySkill() then return end
-    else
-        if resolveEnemySkill() then return end
-        if resolvePlayerSkill() then return end
-    end
+            local secondAttacker, secondDefender, secondSkill
 
+            if self._playerFirst then
+                -- Enemy is second; skip if enemy is dead
+                if not self.currentEnemyLanguage or self.currentEnemyLanguage:isObsolete() then
+                    self:_closeTurn()
+                    return
+                end
+                secondAttacker = self.currentEnemyLanguage
+                secondDefender = self.currentPlayerLanguage
+                secondSkill    = self.pendingEnemySkill
+            else
+                -- Player is second; skip if player is dead
+                if self.currentPlayerLanguage:isObsolete() then
+                    self:_closeTurn()
+                    return
+                end
+                secondAttacker = self.currentPlayerLanguage
+                secondDefender = self.currentEnemyLanguage
+                secondSkill    = self.pendingPlayerSkill
+            end
+
+            self:applySkill(secondAttacker, secondDefender, secondSkill)
+            self.phase = PHASE.RESOLVING_SECOND
+            -- battle.lua will call advanceResolution again when these messages clear
+        else
+            self:_closeTurn()
+        end
+
+    elseif self.phase == PHASE.RESOLVING_SECOND then
+        self:_closeTurn()
+    end
+end
+
+-- Internal: wrap up the turn after all attacks are done.
+function BattleController:_closeTurn()
     if self:checkWinCondition() then return end
+
+    -- Handle enemy replacement if it went obsolete during player's attack
+    if self.currentEnemyLanguage and self.currentEnemyLanguage:isObsolete() then
+        self:log(self.currentEnemyLanguage.language_name .. " is OBSOLETE")
+        if self:checkWinCondition() then return end
+
+        self.currentEnemyLanguage = BattleAI.chooseLanguage(self.enemyLanguages)
+        if self.currentEnemyLanguage then
+            self:pushMessage(self.programmerName .. " sent out " .. self.currentEnemyLanguage.language_name)
+        end
+    end
 
     if self.currentPlayerLanguage:isObsolete() then
         self:log(self.currentPlayerLanguage.language_name .. " is OBSOLETE")
@@ -220,12 +278,11 @@ function BattleController:resolveAttacks()
     end
 
     self.pendingPlayerSkill = nil
-    self.pendingEnemySkill = nil
+    self.pendingEnemySkill  = nil
 end
 
 
--- SKILL
--- Applies a skill from attacker to defender, triggering passives.
+-- SKILL APPLICATION
 function BattleController:applySkill(attacker, defender, skill)
     for _, p in ipairs(attacker:getPassivesByTrigger("before_attack")) do
         p:apply(self, attacker)
@@ -235,7 +292,7 @@ function BattleController:applySkill(attacker, defender, skill)
         p:apply(self, defender)
     end
 
-    -- Accuracy check.
+    -- Accuracy check
     if skill.accuracy and math.random(100) > skill.accuracy then
         self:pushMessage(
             attacker.language_name ..
@@ -248,11 +305,11 @@ function BattleController:applySkill(attacker, defender, skill)
 
     local didSomething = false
 
-    -- Attack effect.
+    -- Attack effect
     if skill:hasCategory("attack") and skill.damage then
         local damage = attacker:calculateDamage(skill)
         local multiplier, effectId = LanguageEffectiveness.getMultiplierAndEffectId(defender, skill)
-        local finalDamage = math.max(1, math.floor(damage * multiplier)) -- 1 is to avoid 0 damage for rounding
+        local finalDamage = math.max(1, math.floor(damage * multiplier))
         local actual = defender:takeDamage(finalDamage)
 
         self:pushMessage(
@@ -273,8 +330,7 @@ function BattleController:applySkill(attacker, defender, skill)
         didSomething = true
     end
 
-
-    -- Heal effect.
+    -- Heal effect
     if skill:hasCategory("heal") and skill.heal then
         local oldHp = attacker.currentBattle.currentHp
         local maxHp = attacker.attributes.hp
@@ -295,7 +351,7 @@ function BattleController:applySkill(attacker, defender, skill)
         didSomething = true
     end
 
-    -- Attribute effect.
+    -- Attribute effect
     if skill:hasCategory("attribute_effect") and skill.modifiedAttributes then
         for attributeName, delta in pairs(skill.modifiedAttributes) do
             if attacker.currentBattle.currentAttributes[attributeName] ~= nil then
@@ -304,10 +360,15 @@ function BattleController:applySkill(attacker, defender, skill)
             end
         end
 
+        local modifiedAttributes = ""
+        for atributeName, atributeValue in pairs(skill.modifiedAttributes) do
+            modifiedAttributes = modifiedAttributes .. atributeName .. " in " .. tostring(atributeValue) .. " "
+        end
+
         self:pushMessage(
             attacker.language_name ..
             " used " .. skill.nameKey ..
-            " and modified current attributes"
+            " and modified " .. modifiedAttributes
         )
 
         didSomething = true

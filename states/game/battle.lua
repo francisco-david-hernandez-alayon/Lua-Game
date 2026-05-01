@@ -19,7 +19,7 @@ local PHASE = BattleController.PHASE
 
 -- BACKGROUND INFO
 local bgData = nil
-local BG_PATH         = "assets/sprites/test/battle_bg_test.png"  -- TODO BACKGROUND CAN CHANGE ADD AS PARAM 
+local BG_PATH           = "assets/sprites/test/battle_bg_test.png"
 local BG_FRAME_DURATION = 0.2
 
 
@@ -39,6 +39,7 @@ local function getSwappable()
     return getPickable()
 end
 
+
 function Battle.enter(stateManager, localization, battleController, targetReturnState)
     sm          = stateManager
     returnState = targetReturnState
@@ -47,29 +48,43 @@ function Battle.enter(stateManager, localization, battleController, targetReturn
     menuMode    = "action"
 end
 
+
+-- INPUT
 function Battle.keypressed(key)
+
+    -- BATTLE OVER
     if bc.phase == PHASE.BATTLE_OVER then
         if key == "return" or key == "e" then
-            -- Reset player languages stats after the battle
             for _, lang in ipairs(bc.playerLanguages) do
                 lang:resetLanguageAfterBattle()
             end
-
             sm.switch(returnState)
         end
         return
     end
 
-
-    -- Block input while a message is displayed
+    -- MESSAGE QUEUE (blocks everything else)
+    -- During RESOLVING_FIRST / RESOLVING_SECOND the player just advances logs.
+    -- When the last message is popped we call advanceResolution() so the
+    -- controller can fire the second attacker (or close the turn).
     if bc:hasMessages() then
         if key == "return" or key == "e" then
             bc:popMessage()
+
+            -- If queue is now empty and we are mid-resolution, advance
+            if not bc:hasMessages() then
+                local p = bc.phase
+                if p == PHASE.RESOLVING_FIRST or p == PHASE.RESOLVING_SECOND then
+                    bc:advanceResolution()
+                    -- advanceResolution may push new messages (second attacker)
+                    -- or switch phase to PLAYER_ACTION / PICK_LANGUAGE / BATTLE_OVER
+                end
+            end
         end
         return
     end
 
-    -- Force language pick
+    -- FORCE LANGUAGE PICK
     if bc.phase == PHASE.PICK_LANGUAGE then
         local pickable = getPickable()
         if key == "up"   then selected = math.max(1, selected - 1) end
@@ -84,6 +99,7 @@ function Battle.keypressed(key)
         return
     end
 
+    -- PLAYER ACTION (normal menu)
     if bc.phase ~= PHASE.PLAYER_ACTION then return end
 
     local menuSize = BattleUI.getMenuSize(bc, menuMode)
@@ -92,39 +108,55 @@ function Battle.keypressed(key)
 
     if key == "return" or key == "e" then
         if menuMode == "action" then
-            if selected == 1 then menuMode = "attack" selected = 1
-            elseif selected == 2 then menuMode = "swap" selected = 1
+            if selected == 1 then
+                menuMode = "attack"
+                selected = 1
+            elseif selected == 2 then
+                menuMode = "swap"
+                selected = 1
             end
 
         elseif menuMode == "attack" then
             local skills = bc.currentPlayerLanguage.currentSkills
             if selected == #skills + 1 then
-                menuMode = "action" selected = 1
+                menuMode = "action"
+                selected = 1
             else
                 local skill = skills[selected]
-                if skill then bc:playerAttack(skill) menuMode = "action" selected = 1 end
+                if skill then
+                    bc:playerAttack(skill)
+                    menuMode = "action"
+                    selected = 1
+                end
             end
 
         elseif menuMode == "swap" then
             local swappable = getSwappable()
             if selected == #swappable + 1 then
-                menuMode = "action" selected = 1
+                menuMode = "action"
+                selected = 1
             else
                 local lang = swappable[selected]
-                if lang then bc:playerSwapLanguage(lang) menuMode = "action" selected = 1 end
+                if lang then
+                    bc:playerSwapLanguage(lang)
+                    menuMode = "action"
+                    selected = 1
+                end
             end
         end
     end
 
     if key == "escape" and menuMode ~= "action" then
-        menuMode = "action" selected = 1
+        menuMode = "action"
+        selected = 1
     end
 end
 
+
+-- UPDATE
 function Battle.update(dt)
     -- BACKGROUND
     if not bgData then
-        -- Lazy load on first update
         local ok = love.filesystem.getInfo(BG_PATH)
         if ok then
             bgData = GetBattleBackgroundSprite.load(BG_PATH, BG_FRAME_DURATION)
@@ -137,20 +169,18 @@ function Battle.update(dt)
 end
 
 
+-- DRAW
 function Battle.draw()
-    -- BACKGROUND
     local sw = love.graphics.getWidth()
     local sh = love.graphics.getHeight()
 
     if bgData then
         GetBattleBackgroundSprite.draw(bgData)
     else
-        -- Fallback solid color if no bg loaded
         love.graphics.setColor(0.08, 0.08, 0.08)
         love.graphics.rectangle("fill", 0, 0, sw, sh)
     end
-    
-    -- UI
+
     BattleUI.draw(bc, selected, menuMode)
 end
 

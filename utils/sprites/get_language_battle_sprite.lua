@@ -6,8 +6,8 @@ local anim8 = require("libs.anim8")
 
 local GetLanguageBattleSprite = {}
 
-local FRAME_WIDTH = 64
-local FRAME_HEIGHT = 64
+local FRAME_WIDTH = 128
+local FRAME_HEIGHT = 128
 local FRAMES_PER_DIRECTION = 8
 local FRAMES_PER_VARIANT = 16
 local BASE_VARIANT_INDEX = 0

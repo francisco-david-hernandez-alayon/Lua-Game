@@ -1,9 +1,9 @@
 -- states/game/battle.lua
 -- Handles input and state logic for the battle screen.
 
-local L                = require("core.localization.localization")
-local BattleController = require("core.battle.battle_controller")
-local BattleUI         = require("ui.ui_battle")
+local L                         = require("core.localization.localization")
+local BattleController          = require("core.battle.battle_controller")
+local BattleUI                  = require("ui.ui_battle")
 local GetBattleBackgroundSprite = require("utils.sprites.get_battle_background_sprite")
 
 local Battle = {}
@@ -16,14 +16,13 @@ local menuMode    = "action"
 
 local PHASE = BattleController.PHASE
 
-
--- BACKGROUND INFO
-local bgData = nil
+-- BACKGROUND
+local bgData            = nil
 local BG_PATH           = "assets/sprites/test/battle_bg_test.png"
 local BG_FRAME_DURATION = 0.2
 
 
--- ACTIVE LANGUAGES
+-- HELPERS
 local function getPickable()
     local langs    = bc:getActivePlayerLanguages()
     local pickable = {}
@@ -39,7 +38,29 @@ local function getSwappable()
     return getPickable()
 end
 
+-- Returns attacker/defender screen positions from BattleUI for the current skill.
+local function getAnimationPositions()
+    local pos       = BattleUI.getSpritePositions()
+    local attacker  = bc._animatingAttacker
+    local playerPos = pos.attackerPlayer
+    local enemyPos  = pos.attackerEnemy
 
+    if attacker == bc.currentPlayerLanguage then
+        return playerPos, enemyPos
+    else
+        return enemyPos, playerPos
+    end
+end
+
+local function startCurrentAnimation()
+    if bc.phase == PHASE.ANIMATING and bc._animatingSkill then
+        local atkPos, defPos = getAnimationPositions()
+        bc._animatingSkill.animation:play(atkPos, defPos, atkPos.scale)
+    end
+end
+
+
+-- ENTER
 function Battle.enter(stateManager, localization, battleController, targetReturnState)
     sm          = stateManager
     returnState = targetReturnState
@@ -63,21 +84,18 @@ function Battle.keypressed(key)
         return
     end
 
-    -- MESSAGE QUEUE (blocks everything else)
-    -- During RESOLVING_FIRST / RESOLVING_SECOND the player just advances logs.
-    -- When the last message is popped we call advanceResolution() so the
-    -- controller can fire the second attacker (or close the turn).
+    -- ANIMATING: block all input
+    if bc.phase == PHASE.ANIMATING then return end
+
+    -- MESSAGE QUEUE
     if bc:hasMessages() then
         if key == "return" or key == "e" then
             bc:popMessage()
-
-            -- If queue is now empty and we are mid-resolution, advance
             if not bc:hasMessages() then
                 local p = bc.phase
                 if p == PHASE.RESOLVING_FIRST or p == PHASE.RESOLVING_SECOND then
                     bc:advanceResolution()
-                    -- advanceResolution may push new messages (second attacker)
-                    -- or switch phase to PLAYER_ACTION / PICK_LANGUAGE / BATTLE_OVER
+                    startCurrentAnimation()
                 end
             end
         end
@@ -91,15 +109,12 @@ function Battle.keypressed(key)
         if key == "down" then selected = math.min(#pickable, selected + 1) end
         if key == "return" or key == "e" then
             local lang = pickable[selected]
-            if lang then
-                bc:changeCurrentPlayerLanguage(lang)
-                selected = 1
-            end
+            if lang then bc:changeCurrentPlayerLanguage(lang); selected = 1 end
         end
         return
     end
 
-    -- PLAYER ACTION (normal menu)
+    -- PLAYER ACTION
     if bc.phase ~= PHASE.PLAYER_ACTION then return end
 
     local menuSize = BattleUI.getMenuSize(bc, menuMode)
@@ -108,47 +123,39 @@ function Battle.keypressed(key)
 
     if key == "return" or key == "e" then
         if menuMode == "action" then
-            if selected == 1 then
-                menuMode = "attack"
-                selected = 1
-            elseif selected == 2 then
-                menuMode = "swap"
-                selected = 1
-            end
+            if selected == 1 then menuMode = "attack"; selected = 1
+            elseif selected == 2 then menuMode = "swap"; selected = 1 end
 
         elseif menuMode == "attack" then
             local skills = bc.currentPlayerLanguage.currentSkills
             if selected == #skills + 1 then
-                menuMode = "action"
-                selected = 1
+                menuMode = "action"; selected = 1
             else
                 local skill = skills[selected]
                 if skill then
                     bc:playerAttack(skill)
-                    menuMode = "action"
-                    selected = 1
+                    startCurrentAnimation()
+                    menuMode = "action"; selected = 1
                 end
             end
 
         elseif menuMode == "swap" then
             local swappable = getSwappable()
             if selected == #swappable + 1 then
-                menuMode = "action"
-                selected = 1
+                menuMode = "action"; selected = 1
             else
                 local lang = swappable[selected]
                 if lang then
                     bc:playerSwapLanguage(lang)
-                    menuMode = "action"
-                    selected = 1
+                    startCurrentAnimation()
+                    menuMode = "action"; selected = 1
                 end
             end
         end
     end
 
     if key == "escape" and menuMode ~= "action" then
-        menuMode = "action"
-        selected = 1
+        menuMode = "action"; selected = 1
     end
 end
 
@@ -157,15 +164,24 @@ end
 function Battle.update(dt)
     -- BACKGROUND
     if not bgData then
-        local ok = love.filesystem.getInfo(BG_PATH)
-        if ok then
+        if love.filesystem.getInfo(BG_PATH) then
             bgData = GetBattleBackgroundSprite.load(BG_PATH, BG_FRAME_DURATION)
         end
     end
     GetBattleBackgroundSprite.update(bgData, dt)
 
-    -- UI
+    -- UI (also updates skill animation sprite frame)
     BattleUI.update(bc, dt)
+
+    -- ANIMATION COMPLETION CHECK
+    if bc.phase == PHASE.ANIMATING and bc._animatingSkill then
+        local anim = bc._animatingSkill.animation
+        if anim and not anim:isPlaying() then
+            bc:animationFinished()
+            -- animationFinished may chain into another ANIMATING (e.g. multi-entry skill)
+            startCurrentAnimation()
+        end
+    end
 end
 
 

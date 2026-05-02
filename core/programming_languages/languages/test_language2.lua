@@ -10,7 +10,11 @@ local Skill = require("core.programming_languages.skill")
 local PassiveAbility = require("core.programming_languages.passive_ability")
 local LanguageTypes = require("core.programming_languages.language_types")
 
+local SA = require("core.programming_languages.skill_animation")
+
 local ID = "test_language_2"
+local esp1 = "test2_esp1"
+local esp2 = "test2_esp2"
 
 local upgrade_test2_hp = Upgrade.new(
     "upgrade_test2_hp", nil, nil, nil,
@@ -23,11 +27,11 @@ local upgrade_test2_speed = Upgrade.new(
 )
 
 local upgrade_test2_esp1 = Upgrade.new(
-    "upgrade_test2_esp1", "test2_esp1", nil, nil, nil
+    "upgrade_test2_esp1", esp1, nil, nil, nil
 )
 
 local upgrade_test2_esp2 = Upgrade.new(
-    "upgrade_test2_esp2", "test2_esp2", nil, nil, nil
+    "upgrade_test2_esp2", esp2, nil, nil, nil
 )
 
 local passive_system_boost = PassiveAbility.new(
@@ -88,7 +92,10 @@ local skill_kernel = Skill.new(
     22,
     nil,
     nil,
-    90
+    90,
+    SA.SkillAnimation.build({
+        { type = SA.AnimationType.PROJECTILE, path = "assets/sprites/test/Proyectile-test.png", duration = 0.8 },
+    })
 )
 
 local skill_optimize = Skill.new(
@@ -100,14 +107,17 @@ local skill_optimize = Skill.new(
     nil,
     nil,
     { def_system = 5 },
-    100
+    100,
+    SA.SkillAnimation.build({
+        { type = SA.AnimationType.STATIC, path = "assets/sprites/test/ModifiedAtributtesTest.png", duration = 1 },
+    })
 )
 
 local function newTestLanguage2()
     local lang = ProgrammingLanguage.new({
         templateId = ID,
         spritePath = "assets/sprites/test/test-lang2.png",
-        spritePos = { "test2_esp1", "test2_esp2" },
+        spritePos = { esp1, esp2 },
         language_name = "SysLang",
         languageTypes = {
             LanguageTypes.SYSTEM

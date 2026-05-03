@@ -322,8 +322,6 @@ function BattleUI.draw(bc, selected, menuMode)
     -- ENEMY
     if bc.currentEnemyLanguage then
         local el = bc.currentEnemyLanguage
-        love.graphics.setColor(0.7, 0.7, 0.7)
-        love.graphics.print(table.concat(el.languageTypes, ", "), 16, 32)
         love.graphics.setColor(0.4, 0.4, 0.4)
         love.graphics.print(bc.programmerName, 16, 48)
 
@@ -343,8 +341,6 @@ function BattleUI.draw(bc, selected, menuMode)
     -- PLAYER
     if bc.currentPlayerLanguage then
         local pl = bc.currentPlayerLanguage
-        love.graphics.setColor(0.7, 0.7, 0.7)
-        love.graphics.print(table.concat(pl.languageTypes, ", "), 16, ARENA_H - 48)
         love.graphics.setColor(0.4, 0.4, 0.4)
         love.graphics.print(L.get("battle_you"), 16, ARENA_H - 28)
 
